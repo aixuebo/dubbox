@@ -30,20 +30,20 @@ public class RpcTraceFilter implements Filter {
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
         if (IncrementIdGen.getId() == null) {
             // 如果分配的id未生成
-            return invoker.invoke(invocation);
+            return invoker.invoke(invocation);//直接继续执行代码,因为该节点没有分配rpc分布式ID的唯一码
         }
 
         long start = System.currentTimeMillis();
         RpcContext context = RpcContext.getContext();
-        boolean isConsumerSide = context.isConsumerSide();
-        boolean isProviderSide = context.isProviderSide();
-        String methodName = context.getMethodName();
+        boolean isConsumerSide = context.isConsumerSide();//是否是消费者---true表示此时是client主动去发送数据一端
+        boolean isProviderSide = context.isProviderSide();//是否是生产者---true表示此时是server端主动接收数据的一端
+        String methodName = context.getMethodName();//服务调用的方法
         RpcInvocation rpcInvocation = (RpcInvocation) invocation;
 
-        //　设计的serviceId
+        //　设计的serviceId:服务的接口+method方法名
         String serviceId = context.getUrl().getServiceInterface() + Constants.UNDER_LINE + methodName;
 
-        Tracer tracer = Tracer.getInstance();
+        Tracer tracer = Tracer.getInstance();//创建一个trace实例
 
         EndPoint endPoint = tracer.buildEndPoint(context.getLocalAddressString(), context.getLocalPort());
 
