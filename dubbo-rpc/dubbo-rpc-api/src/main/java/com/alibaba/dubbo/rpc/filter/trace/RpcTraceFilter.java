@@ -49,22 +49,24 @@ public class RpcTraceFilter implements Filter {
 
         Span span = null;
         try {
-            if (isConsumerSide) {
+            if (isConsumerSide) {//比如此时说明是客户端发送到服务的第一个接口,从该接口开始向其他接口服务发送信息
                 // 如果是消费者
                 Span parentSpan = tracer.getParentSpan();
-                if (null == parentSpan) {
+                if (null == parentSpan) {//说明是第一个根节点
                     // 如果parentSpan为null, 表示该Span为root span
-                    span = tracer.newSpan(methodName, serviceId);
+                    span = tracer.newSpan(methodName, serviceId);//创建新的spanId,转换成span对象,同时里面创建对应的traceId等信息
                 } else {
-                    // 叶子span
+                    // 叶子span----表示比如A调用B,B调用C,此时表示B要调用c,因此作为新的客户端,创建一个新的span对象,依赖的父span就是B的spanId
                     span = tracer.buildSpan(parentSpan.getTraceId(), parentSpan.getId(), tracer.generateSpanId(), methodName, parentSpan.getSample(), serviceId);
                 }
-            } else if (isProviderSide) {
+            } else if (isProviderSide) {//表示服务器端接收的数据情况
                 // 如果是生产者
+                //以下内容都是客户端将参数传递到request中,发送过来的,因此服务端是可以类似request中get到的属性值
                 String traceId = AttachmentUtil.getAttachment(rpcInvocation, Constants.TRACE_ID);
                 String parentId = AttachmentUtil.getAttachment(rpcInvocation, Constants.PARENT_ID);
                 String spanId = AttachmentUtil.getAttachment(rpcInvocation, Constants.SPAN_ID);
                 boolean isSample = traceId != null && AttachmentUtil.getAttachmentBoolean(rpcInvocation, Constants.SAMPLE);
+                //生产者的span都是已知的,都是从客户端创建的,因此span只有客户端才会被创建新的
                 span = tracer.buildSpan(traceId, parentId, spanId, methodName, isSample, serviceId);
             }
 
@@ -115,11 +117,12 @@ public class RpcTraceFilter implements Filter {
         exAnnotation.setEndPoint(endPoint);
         // add到span
         Tracer tracer = Tracer.getInstance();
-        tracer.addBinaryAnntation(exAnnotation);
+        tracer.addBinaryAnntation(exAnnotation);//向父span追加一个自定义的异常内容
     }
 
     /**
      * 将Span的相关值设置到RpcInvocation的attachment中, 然后传递到下游
+     相当于向request中set各种属性,让server端可以接收到这些属性
      * @param invocation
      * @param span
      */
@@ -143,7 +146,7 @@ public class RpcTraceFilter implements Filter {
      */
     private void invokeBefore(Span span, EndPoint endPoint, long start, boolean isConsumerSide, boolean isProviderSide) {
         Tracer tracer = Tracer.getInstance();
-        if (isConsumerSide && span.getSample()) {
+        if (isConsumerSide && span.getSample()) {//说明该span是可以支持抽样的,因此要对其发送数据
             // 如果是消费者, ClientSend
             tracer.clientSend(span, endPoint, start);
         } else if (isProviderSide) {
