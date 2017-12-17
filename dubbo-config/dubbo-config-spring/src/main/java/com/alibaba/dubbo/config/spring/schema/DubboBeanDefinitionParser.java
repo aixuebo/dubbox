@@ -76,25 +76,37 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
     public BeanDefinition parse(Element element, ParserContext parserContext) {
         return parse(element, parserContext, beanClass, required);
     }
-    
+
+    /**
+     *
+     * @param element
+     * @param parserContext
+     * @param beanClass 标签需要对应的java的class
+     * @param required
+     * @return
+     * 解析xml标签的配置
+     */
     @SuppressWarnings("unchecked")
     private static BeanDefinition parse(Element element, ParserContext parserContext, Class<?> beanClass, boolean required) {
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
         beanDefinition.setBeanClass(beanClass);
         beanDefinition.setLazyInit(false);
         String id = element.getAttribute("id");
+        //如果没有设置id,则自己创建一个id
         if ((id == null || id.length() == 0) && required) {
-        	String generatedBeanName = element.getAttribute("name");
-        	if (generatedBeanName == null || generatedBeanName.length() == 0) {
+        	String generatedBeanName = element.getAttribute("name");//通过name创建id
+        	if (generatedBeanName == null || generatedBeanName.length() == 0) {//说明没有配置name,则ID为dubbo或者interface对应的属性值
         	    if (ProtocolConfig.class.equals(beanClass)) {
         	        generatedBeanName = "dubbo";
         	    } else {
         	        generatedBeanName = element.getAttribute("interface");
         	    }
         	}
+            //如果也没有设置,则使用class的name
         	if (generatedBeanName == null || generatedBeanName.length() == 0) {
         		generatedBeanName = beanClass.getName();
         	}
+            //如果class的name重名了,则追加序号
             id = generatedBeanName; 
             int counter = 2;
             while(parserContext.getRegistry().containsBeanDefinition(id)) {
