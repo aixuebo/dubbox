@@ -28,8 +28,9 @@ public interface ExtensionFactory {
      * Get extension.
      * 
      * @param type object type.
-     * @param name object name.
+     * @param name object name.属性名
      * @return object instance.
+     * 找到type对应的class对应的实例对象,该实例对象还要对应在spring中的name
      */
     <T> T getExtension(Class<T> type, String name);
 

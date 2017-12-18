@@ -140,7 +140,8 @@ public class ConfigUtils {
     }
 	
     private static volatile Properties PROPERTIES;
-    
+
+    //加载dubbo.properties
     public static Properties getProperties() {
         if (PROPERTIES == null) {
             synchronized (ConfigUtils.class) {
@@ -280,6 +281,7 @@ public class ConfigUtils {
         return properties;
     }
 
+    //获取运行的进程ID
     private static int PID = -1;
     
     public static int getPid() {

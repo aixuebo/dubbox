@@ -477,7 +477,6 @@ public class ExtensionLoader<T> {
         }
         StringBuilder buf = new StringBuilder("No such extension " + type.getName() + " by name " + name);
 
-
         int i = 1;
         for (Map.Entry<String, IllegalStateException> entry : exceptions.entrySet()) {
             if(i == 1) {
@@ -519,7 +518,8 @@ public class ExtensionLoader<T> {
                     type + ")  could not be instantiated: " + t.getMessage(), t);
         }
     }
-    
+
+    //对该实例对象进行set方法注入,即将需要的属性在spring中定义好的注入进去
     private T injectExtension(T instance) {
         try {
             if (objectFactory != null) {
@@ -527,9 +527,9 @@ public class ExtensionLoader<T> {
                     if (method.getName().startsWith("set")
                             && method.getParameterTypes().length == 1
                             && Modifier.isPublic(method.getModifiers())) {
-                        Class<?> pt = method.getParameterTypes()[0];
+                        Class<?> pt = method.getParameterTypes()[0];//set对象的参数值
                         try {
-                            String property = method.getName().length() > 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";
+                            String property = method.getName().length() > 3 ? method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4) : "";//找到set方法对应的具体的属性name
                             Object object = objectFactory.getExtension(pt, property);
                             if (object != null) {
                                 method.invoke(instance, object);
@@ -557,7 +557,8 @@ public class ExtensionLoader<T> {
 	        throw new IllegalStateException("No such extension \"" + name + "\" for " + type.getName() + "!");
 	    return clazz;
 	}
-	
+
+    //单例模式
 	private Map<String, Class<?>> getExtensionClasses() {
         Map<String, Class<?>> classes = cachedClasses.get();
         if (classes == null) {
@@ -613,7 +614,7 @@ public class ExtensionLoader<T> {
                             String line = null;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');
-                                if (ci >= 0) line = line.substring(0, ci);
+                                if (ci >= 0) line = line.substring(0, ci);//取消注解内容
                                 line = line.trim();
                                 if (line.length() > 0) {
                                     try {
@@ -714,7 +715,8 @@ public class ExtensionLoader<T> {
         }
         return extension.value();
     }
-    
+
+    //创建一个真实的实例对象
     @SuppressWarnings("unchecked")
     private T createAdaptiveExtension() {
         try {
@@ -723,7 +725,8 @@ public class ExtensionLoader<T> {
             throw new IllegalStateException("Can not create adaptive extenstion " + type + ", cause: " + e.getMessage(), e);
         }
     }
-    
+
+    //创建一个实现扩展类,并且进行编译成一个真实的Class对象
     private Class<?> getAdaptiveExtensionClass() {
         getExtensionClasses();
         if (cachedAdaptiveClass != null) {
@@ -731,18 +734,20 @@ public class ExtensionLoader<T> {
         }
         return cachedAdaptiveClass = createAdaptiveExtensionClass();
     }
-    
+
+    //创建一个实现扩展类,并且进行编译成一个真实的Class对象
     private Class<?> createAdaptiveExtensionClass() {
-        String code = createAdaptiveExtensionClassCode();
+        String code = createAdaptiveExtensionClassCode();//创建实现类的代码
         ClassLoader classLoader = findClassLoader();
         com.alibaba.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(com.alibaba.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
-        return compiler.compile(code, classLoader);
+        return compiler.compile(code, classLoader);//编译这段代码
     }
-    
+
+    //创建一个实现类,名字为getSimpleName+$Adpative
     private String createAdaptiveExtensionClassCode() {
         StringBuilder codeBuidler = new StringBuilder();
         Method[] methods = type.getMethods();
-        boolean hasAdaptiveAnnotation = false;
+        boolean hasAdaptiveAnnotation = false;//true表示存在Adaptive这个annotation的方法
         for(Method m : methods) {
             if(m.isAnnotationPresent(Adaptive.class)) {
                 hasAdaptiveAnnotation = true;
@@ -763,13 +768,14 @@ public class ExtensionLoader<T> {
             Class<?>[] ets = method.getExceptionTypes();
 
             Adaptive adaptiveAnnotation = method.getAnnotation(Adaptive.class);
-            StringBuilder code = new StringBuilder(512);
+            StringBuilder code = new StringBuilder(512);//写入代码
+            //先定义url属性值
             if (adaptiveAnnotation == null) {
                 code.append("throw new UnsupportedOperationException(\"method ")
                         .append(method.toString()).append(" of interface ")
-                        .append(type.getName()).append(" is not adaptive method!\");");
+                        .append(type.getName()).append(" is not adaptive method!\");");//实现该方法只需要抛异常,说该适应类不支持该方法
             } else {
-                int urlTypeIndex = -1;
+                int urlTypeIndex = -1;//查看哪个参数是url类型的
                 for (int i = 0; i < pts.length; ++i) {
                     if (pts[i].equals(URL.class)) {
                         urlTypeIndex = i;
@@ -780,27 +786,29 @@ public class ExtensionLoader<T> {
                 if (urlTypeIndex != -1) {
                     // Null Point check
                     String s = String.format("\nif (arg%d == null) throw new IllegalArgumentException(\"url == null\");",
-                                    urlTypeIndex);
+                                    urlTypeIndex);//arg+number表示方法的参数名
                     code.append(s);
-                    
-                    s = String.format("\n%s url = arg%d;", URL.class.getName(), urlTypeIndex); 
+                    //上面如果url=null,则在代码已经执行完,因为抛异常了
+
+                    //以下说明存在url这个参数
+                    s = String.format("\n%s url = arg%d;", URL.class.getName(), urlTypeIndex); // 代码   URL url = arg1
                     code.append(s);
                 }
                 // 参数没有URL类型
                 else {
-                    String attribMethod = null;
+                    String attribMethod = null;//具体的返回URL的方法名字
                     
                     // 找到参数的URL属性
                     LBL_PTS:
                     for (int i = 0; i < pts.length; ++i) {
-                        Method[] ms = pts[i].getMethods();
+                        Method[] ms = pts[i].getMethods();//继续返回每一个参数对象的方法---相当于深度遍历
                         for (Method m : ms) {
                             String name = m.getName();
                             if ((name.startsWith("get") || name.length() > 3)
                                     && Modifier.isPublic(m.getModifiers())
                                     && !Modifier.isStatic(m.getModifiers())
                                     && m.getParameterTypes().length == 0
-                                    && m.getReturnType() == URL.class) {
+                                    && m.getReturnType() == URL.class) {//找到 URL getXXX()这种方法
                                 urlTypeIndex = i;
                                 attribMethod = name;
                                 break LBL_PTS;
@@ -814,13 +822,13 @@ public class ExtensionLoader<T> {
                     
                     // Null point check
                     String s = String.format("\nif (arg%d == null) throw new IllegalArgumentException(\"%s argument == null\");",
-                                    urlTypeIndex, pts[urlTypeIndex].getName());
+                                    urlTypeIndex, pts[urlTypeIndex].getName());//说明该参数真实值是null
                     code.append(s);
                     s = String.format("\nif (arg%d.%s() == null) throw new IllegalArgumentException(\"%s argument %s() == null\");",
-                                    urlTypeIndex, attribMethod, pts[urlTypeIndex].getName(), attribMethod);
+                                    urlTypeIndex, attribMethod, pts[urlTypeIndex].getName(), attribMethod);//说明该参数的该方法返回值是null
                     code.append(s);
 
-                    s = String.format("%s url = arg%d.%s();",URL.class.getName(), urlTypeIndex, attribMethod); 
+                    s = String.format("%s url = arg%d.%s();",URL.class.getName(), urlTypeIndex, attribMethod); //为url属性值赋值
                     code.append(s);
                 }
                 
@@ -914,7 +922,8 @@ public class ExtensionLoader<T> {
                 }
                 code.append(");");
             }
-            
+
+            //定义方法名架构部分
             codeBuidler.append("\npublic " + rt.getCanonicalName() + " " + method.getName() + "(");
             for (int i = 0; i < pts.length; i ++) {
                 if (i > 0) {
@@ -935,12 +944,12 @@ public class ExtensionLoader<T> {
                 }
             }
             codeBuidler.append(" {");
-            codeBuidler.append(code.toString());
+            codeBuidler.append(code.toString());//具体实现的代码
             codeBuidler.append("\n}");
         }
         codeBuidler.append("\n}");
         if (logger.isDebugEnabled()) {
-            logger.debug(codeBuidler.toString());
+            logger.debug(codeBuidler.toString());//打印整个定义的class全部代码
         }
         return codeBuidler.toString();
     }

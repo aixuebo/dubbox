@@ -353,7 +353,7 @@ public class Constants {
     public static final String  COMMA_SEPARATOR                    = ",";
 
     public static final Pattern COMMA_SPLIT_PATTERN                = Pattern
-                                                                           .compile("\\s*[,]+\\s*");
+                                                                           .compile("\\s*[,]+\\s*");//按照逗号拆分
 
     public final static String  PATH_SEPARATOR                     = "/";
 

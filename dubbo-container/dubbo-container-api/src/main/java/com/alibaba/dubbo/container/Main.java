@@ -36,7 +36,7 @@ public class Main {
 
     public static final String CONTAINER_KEY = "dubbo.container";
 
-    public static final String SHUTDOWN_HOOK_KEY = "dubbo.shutdown.hook";
+    public static final String SHUTDOWN_HOOK_KEY = "dubbo.shutdown.hook";//值是true或者false,表示是否开启hook
     
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
@@ -48,7 +48,8 @@ public class Main {
         try {
             if (args == null || args.length == 0) {
                 String config = ConfigUtils.getProperty(CONTAINER_KEY, loader.getDefaultExtensionName());
-                args = Constants.COMMA_SPLIT_PATTERN.split(config);
+                args = Constants.COMMA_SPLIT_PATTERN.split(config);//按照逗号拆分config
+
             }
             
             final List<Container> containers = new ArrayList<Container>();
