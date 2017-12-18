@@ -39,6 +39,7 @@ public class SpringExtensionFactory implements ExtensionFactory {
         contexts.remove(context);
     }
 
+    //找到name对应的实例化后的bean对象,参数T一定是name对应的子类,即T extends nameBean
     @SuppressWarnings("unchecked")
     public <T> T getExtension(Class<T> type, String name) {
         for (ApplicationContext context : contexts) {

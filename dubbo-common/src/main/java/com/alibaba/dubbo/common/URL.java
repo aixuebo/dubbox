@@ -568,6 +568,7 @@ public final class URL implements Serializable {
         return value;
     }
 
+    //返回一个正整数
     public int getPositiveParameter(String key, int defaultValue) {
         if (defaultValue <= 0) {
             throw new IllegalArgumentException("defaultValue <= 0");

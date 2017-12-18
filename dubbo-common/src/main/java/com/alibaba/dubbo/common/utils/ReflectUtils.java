@@ -399,10 +399,11 @@ public final class ReflectUtils {
 	 * void do(String arg1,boolean arg2) => "do(Ljava/lang/String;Z)V"
 	 * 
 	 * @param m method.
-	 * @return desc.
+	 * @return desc. 返回方法的描述
 	 */
 	public static String getDesc(final Method m)
 	{
+		//method(
 		StringBuilder ret = new StringBuilder(m.getName()).append('(');
 		Class<?>[] parameterTypes = m.getParameterTypes();
 		for(int i=0;i<parameterTypes.length;i++)

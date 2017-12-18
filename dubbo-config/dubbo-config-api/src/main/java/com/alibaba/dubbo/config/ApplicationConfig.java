@@ -29,7 +29,7 @@ import com.alibaba.dubbo.config.support.Parameter;
  * 
  * @author william.liangf
  * @export
- * 定义application 标签
+ * 定义application 标签---表示描述一个应用
  */
 public class ApplicationConfig extends AbstractConfig {
 
@@ -50,7 +50,7 @@ public class ApplicationConfig extends AbstractConfig {
     // 分层
     private String               architecture;
 
-    // 环境，如：dev/test/run
+    // 环境，如：dev/test/run  表示开发环境还是测试环境还是生产环境 还是运行环境等等自己定义
     private String               environment;
 
     // Java代码编译器

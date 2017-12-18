@@ -26,7 +26,7 @@ import com.alibaba.dubbo.common.utils.ReflectUtils;
 
 /**
  * Mixin
- * 
+ * 混入代码
  * @author qian.lei
  */
 
@@ -102,7 +102,7 @@ public abstract class Mixin
 			StringBuilder code = new StringBuilder();
 			for(int i=0;i<dcs.length;i++)
 			{
-				if( !Modifier.isPublic(dcs[i].getModifiers()) )
+				if( !Modifier.isPublic(dcs[i].getModifiers()) ) //说明噶class不是public
 				{
 					String npkg = dcs[i].getPackage().getName();
 					if( pkg == null )
@@ -116,12 +116,16 @@ public abstract class Mixin
 					}
 				}
 
+				//添加一个属性private xxxClass d1;
 				ccp.addField("private " + dcs[i].getName() + " d" + i + ";");
 
+				//打印d1这个对象具体是谁----di=(xxxClass)$1[i];
 				code.append("d").append(i).append(" = (").append(dcs[i].getName()).append(")$1[").append(i).append("];\n");
-				if( MixinAware.class.isAssignableFrom(dcs[i]) )
+				if( MixinAware.class.isAssignableFrom(dcs[i]) ) //看该class是否是MixinAware的子类
 					code.append("d").append(i).append(".setMixinInstance(this);\n");
 			}
+
+			//赋予一个构造函数,将code作为构造函数换底进去
 			ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{ Object[].class }, code.toString());
 
 			// impl methods.
@@ -141,9 +145,10 @@ public abstract class Mixin
 							throw new IllegalArgumentException("non-public delegate class from different packages");
 					}
 				}
-
+				//添加一个借口
 				ccp.addInterface(ics[i]);
 
+				//为接口添加实现类
 				for( Method method : ics[i].getMethods() )
 				{
 					if( "java.lang.Object".equals(method.getDeclaringClass().getName()) )
@@ -207,7 +212,7 @@ public abstract class Mixin
 
 	/**
 	 * new Mixin instance.
-	 * 
+	 * 创建新混入的对象
 	 * @param ds delegates instance.
 	 * @return instance.
 	 */
@@ -215,6 +220,7 @@ public abstract class Mixin
 
 	protected Mixin(){}
 
+	//寻找所有class中,参数desc这个描述所在的class
 	private static int findMethod(Class<?>[] dcs, String desc)
 	{
 		Class<?> cl;
@@ -232,6 +238,7 @@ public abstract class Mixin
 		return -1;
 	}
 
+	//参数集合必须全都是接口
 	private static void assertInterfaceArray(Class<?>[] ics)
 	{
 		for(int i=0;i<ics.length;i++)
