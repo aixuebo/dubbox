@@ -49,13 +49,13 @@ import com.alibaba.dubbo.rpc.support.ProtocolUtils;
 public class GenericFilter implements Filter {
 
     public Result invoke(Invoker<?> invoker, Invocation inv) throws RpcException {
-        if (inv.getMethodName().equals(Constants.$INVOKE) 
+        if (inv.getMethodName().equals(Constants.$INVOKE) //$invoke方法
                 && inv.getArguments() != null
-                && inv.getArguments().length == 3
+                && inv.getArguments().length == 3 //一定有3个参数
                 && ! ProtocolUtils.isGeneric(invoker.getUrl().getParameter(Constants.GENERIC_KEY))) {
-            String name = ((String) inv.getArguments()[0]).trim();
-            String[] types = (String[]) inv.getArguments()[1];
-            Object[] args = (Object[]) inv.getArguments()[2];
+            String name = ((String) inv.getArguments()[0]).trim();//调用方法
+            String[] types = (String[]) inv.getArguments()[1];//调用方法的参数类型
+            Object[] args = (Object[]) inv.getArguments()[2];//参数值
             try {
                 Method method = ReflectUtils.findMethodByMethodSignature(invoker.getInterface(), name, types);
                 Class<?>[] params = method.getParameterTypes();

@@ -25,6 +25,7 @@ import java.util.Map;
  * @see com.alibaba.dubbo.rpc.RpcInvocation
  * @author qian.lei
  * @author william.liangf
+ * 封装的参数,表示要执行哪个方法,参数类型,参数值,等信息,以及request带的请求header信息
  */
 public interface Invocation {
 

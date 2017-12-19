@@ -27,6 +27,7 @@ import com.alibaba.dubbo.rpc.RpcException;
  * ClassLoaderInvokerFilter
  * 
  * @author william.liangf
+ * 切换classLoader
  */
 @Activate(group = Constants.PROVIDER, order = -30000)
 public class ClassLoaderFilter implements Filter {

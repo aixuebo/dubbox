@@ -28,13 +28,15 @@ import com.alibaba.dubbo.rpc.RpcResult;
  * EchoInvokerFilter
  * 
  * @author william.liangf
+ * 拦截echo方法调用,
  */
 @Activate(group = Constants.PROVIDER, order = -110000)
 public class EchoFilter implements Filter {
 
 	public Result invoke(Invoker<?> invoker, Invocation inv) throws RpcException {
+		//echo方法只能有一个参数
 		if(inv.getMethodName().equals(Constants.$ECHO) && inv.getArguments() != null && inv.getArguments().length == 1 )
-			return new RpcResult(inv.getArguments()[0]);
+			return new RpcResult(inv.getArguments()[0]);//将参数内容不变化的传递给客户端
 		return invoker.invoke(inv);
 	}
 

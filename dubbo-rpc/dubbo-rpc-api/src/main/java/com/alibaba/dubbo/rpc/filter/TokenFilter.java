@@ -31,6 +31,7 @@ import com.alibaba.dubbo.rpc.RpcException;
  * TokenInvokerFilter
  * 
  * @author william.liangf
+ * 如果token为null,则抛异常
  */
 @Activate(group = Constants.PROVIDER, value = Constants.TOKEN_KEY)
 public class TokenFilter implements Filter {

@@ -21,6 +21,7 @@ import com.alibaba.dubbo.common.extension.SPI;
  * Filter. (SPI, Singleton, ThreadSafe)
  * 
  * @author william.liangf
+ * 对最终要调用的方法进行拦截
  */
 @SPI
 public interface Filter {
@@ -36,9 +37,9 @@ public interface Filter {
      * </code>
      * 
      * @see com.alibaba.dubbo.rpc.Invoker#invoke(Invocation)
-	 * @param invoker service
-	 * @param invocation invocation.
-	 * @return invoke result.
+	 * @param invoker service 要最终执行的远程暴露的方法是什么
+	 * @param invocation invocation. 要最终执行的远程暴露的方法需要传递的参数信息是什么
+	 * @return invoke result.拦截器处理的结果
 	 * @throws RpcException
 	 */
 	Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException;
