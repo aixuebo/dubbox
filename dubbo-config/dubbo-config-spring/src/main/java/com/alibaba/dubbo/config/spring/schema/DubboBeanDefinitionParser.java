@@ -85,6 +85,12 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
      * @param required
      * @return
      * 解析xml标签的配置
+     *
+     * 解析xml的一个元素,element就是该xml内容,比如<dubbo:application name="demo-provider" owner="programmer" organization="dubbox"/>
+     * 将xml元素内容解析成一个对象,比如beanClass为ApplicationConfig对象
+     * 1.确保xml配置的id是唯一的
+     * 2.创建一个对象,即new一个对象,只是spring使用的是RootBeanDefinition表示该对象,因为后期会调用beanDefinition.setBeanClass(beanClass);方法设置该对象是哪个具体的对象
+     * 3.通过反射获取所有的set方法,找到set方法对应的属性name
      */
     @SuppressWarnings("unchecked")
     private static BeanDefinition parse(Element element, ParserContext parserContext, Class<?> beanClass, boolean required) {
@@ -120,6 +126,8 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);//添加id和该bean的映射
             beanDefinition.getPropertyValues().addPropertyValue("id", id);//添加id属性
         }
+
+        //以下if对特殊的beanClass进行特殊处理
         if (ProtocolConfig.class.equals(beanClass)) {
             for (String name : parserContext.getRegistry().getBeanDefinitionNames()) {
                 BeanDefinition definition = parserContext.getRegistry().getBeanDefinition(name);
@@ -145,15 +153,16 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         } else if (ConsumerConfig.class.equals(beanClass)) {
             parseNested(element, parserContext, ReferenceBean.class, false, "reference", "consumer", id, beanDefinition);
         }
-        Set<String> props = new HashSet<String>();
-        ManagedMap parameters = null;
+        Set<String> props = new HashSet<String>();//表示有哪些set方法,里面存储的都是属性name集合
+        ManagedMap parameters = null;//存储xml配置的属性key=value,这些key不再beanClass的set/get属性中.则存储到这里面
+        //通过反射获取所有的set方法,找到set方法对应的属性name
         for (Method setter : beanClass.getMethods()) {
             String name = setter.getName();
             if (name.length() > 3 && name.startsWith("set")
                     && Modifier.isPublic(setter.getModifiers())
                     && setter.getParameterTypes().length == 1) {
                 Class<?> type = setter.getParameterTypes()[0];
-                String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");
+                String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");//类中的一个属性name的属性
                 props.add(property);
                 Method getter = null;
                 try {
@@ -169,29 +178,54 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                         || ! type.equals(getter.getReturnType())) {
                     continue;
                 }
+
+                //以下if内的字符串表示该beanClass有这些字段的属性,并且进行了set/get方法
                 if ("parameters".equals(property)) {
+                    /**
+                     * 处理参数
+                     * 比如
+                     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+                     *     <parameter key=value/>
+                     *     <parameter key=value/>
+                     *</dubbo:application>
+                     */
                     parameters = parseParameters(element.getChildNodes(), beanDefinition);
                 } else if ("methods".equals(property)) {
+                    /**
+                     * 处理方法
+                     * 比如
+                     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+                     *     <method key=value/>
+                     *</dubbo:application>
+                     */
                     parseMethods(id, element.getChildNodes(), beanDefinition, parserContext);
                 } else if ("arguments".equals(property)) {
+                    /**
+                     * 处理参数
+                     * 比如
+                     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+                     *     <argument index=value/>
+                     *</dubbo:application>
+                     */
                     parseArguments(id, element.getChildNodes(), beanDefinition, parserContext);
                 } else {
-                    String value = element.getAttribute(property);
+                    String value = element.getAttribute(property);//获取该name在xml配置中的属性值
                     if (value != null) {
                     	value = value.trim();
-                    	if (value.length() > 0) {
-                    		if ("registry".equals(property) && RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(value)) {
+                    	if (value.length() > 0) {//确保该值是存在的
+                    		if ("registry".equals(property) && RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(value)) {//value是N/A
                             	RegistryConfig registryConfig = new RegistryConfig();
                             	registryConfig.setAddress(RegistryConfig.NO_AVAILABLE);
                             	beanDefinition.getPropertyValues().addPropertyValue(property, registryConfig);
-                            } else if ("registry".equals(property) && value.indexOf(',') != -1) {
-                    			parseMultiRef("registries", value, beanDefinition, parserContext);
-                            } else if ("provider".equals(property) && value.indexOf(',') != -1) {
+                            } else if ("registry".equals(property) && value.indexOf(',') != -1) {//value有逗号拆分符
+                                //表示多个值,即给属性property赋予一个list对象,list对象的内容就是value按照逗号拆分的结果
+                    			parseMultiRef("registries", value, beanDefinition, parserContext);//为class的registries属性追加一个list的值
+                            } else if ("provider".equals(property) && value.indexOf(',') != -1) {//为class的providers属性追加一个list的值
                             	parseMultiRef("providers", value, beanDefinition, parserContext);
-                            } else if ("protocol".equals(property) && value.indexOf(',') != -1) {
+                            } else if ("protocol".equals(property) && value.indexOf(',') != -1) {//为class的protocols属性追加一个list的值
                                 parseMultiRef("protocols", value, beanDefinition, parserContext);
                             } else {
-                                Object reference;
+                                Object reference;//具体的value值
                                 if (isPrimitive(type)) {
                                     if ("async".equals(property) && "false".equals(value)
                                             || "timeout".equals(property) && "0".equals(value)
@@ -240,13 +274,14 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                                     }
                                     reference = new RuntimeBeanReference(value);
                                 }
-		                        beanDefinition.getPropertyValues().addPropertyValue(property, reference);
+		                        beanDefinition.getPropertyValues().addPropertyValue(property, reference);//为该name赋值
                             }
                     	}
                     }
                 }
             }
         }
+        //从此该类的set方法都已经修改完成---//存储xml配置的属性key=value,这些key不再beanClass的set/get属性中.则存储到这里面
         NamedNodeMap attributes = element.getAttributes();
         int len = attributes.getLength();
         for (int i = 0; i < len; i++) {
@@ -290,18 +325,20 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         }
         return null;
     }
- 
+
+    //是否是原始基本类型
     private static boolean isPrimitive(Class<?> cls) {
         return cls.isPrimitive() || cls == Boolean.class || cls == Byte.class
                 || cls == Character.class || cls == Short.class || cls == Integer.class
                 || cls == Long.class || cls == Float.class || cls == Double.class
                 || cls == String.class || cls == Date.class || cls == Class.class;
     }
-    
+
+    //表示多个值,即给属性property赋予一个list对象,list对象的内容就是value按照逗号拆分的结果
     @SuppressWarnings("unchecked")
 	private static void parseMultiRef(String property, String value, RootBeanDefinition beanDefinition,
             ParserContext parserContext) {
-    	String[] values = value.split("\\s*[,]+\\s*");
+    	String[] values = value.split("\\s*[,]+\\s*");//使用逗号拆分
 		ManagedList list = null;
         for (int i = 0; i < values.length; i++) {
             String v = values[i];
@@ -366,6 +403,14 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         }
     }
 
+    /**
+     * 处理参数
+     * 比如
+     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+     *     <parameter key=value/>
+     *     <parameter key=value/>
+     *</dubbo:application>
+     */
     @SuppressWarnings("unchecked")
     private static ManagedMap parseParameters(NodeList nodeList, RootBeanDefinition beanDefinition) {
         if (nodeList != null && nodeList.getLength() > 0) {
@@ -380,11 +425,11 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
                         }
                         String key = ((Element) node).getAttribute("key");
                         String value = ((Element) node).getAttribute("value");
-                        boolean hide = "true".equals(((Element) node).getAttribute("hide"));
+                        boolean hide = "true".equals(((Element) node).getAttribute("hide"));//如果该标签有隐藏属性,则要被设置为隐藏
                         if (hide) {
-                            key = Constants.HIDE_KEY_PREFIX + key;
+                            key = Constants.HIDE_KEY_PREFIX + key;//key前面加入一个.
                         }
-                        parameters.put(key, new TypedStringValue(value, String.class));
+                        parameters.put(key, new TypedStringValue(value, String.class));//表示该值是一个String类型
                     }
                 }
             }
@@ -393,6 +438,13 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
         return null;
     }
 
+    /**
+     * 处理方法
+     * 比如
+     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+     *     <method key=value/>
+     *</dubbo:application>
+     */
     @SuppressWarnings("unchecked")
     private static void parseMethods(String id, NodeList nodeList, RootBeanDefinition beanDefinition,
                               ParserContext parserContext) {
@@ -424,7 +476,14 @@ public class DubboBeanDefinitionParser implements BeanDefinitionParser {
             }
         }
     }
-    
+
+    /**
+     * 处理参数
+     * 比如
+     * <dubbo:application name="demo-provider" owner="programmer" organization="dubbox">
+     *     <argument index=value/>
+     *</dubbo:application>
+     */
     @SuppressWarnings("unchecked")
     private static void parseArguments(String id, NodeList nodeList, RootBeanDefinition beanDefinition,
                               ParserContext parserContext) {

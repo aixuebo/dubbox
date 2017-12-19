@@ -37,6 +37,15 @@ import com.alibaba.dubbo.common.utils.StringUtils;
 
 /**
  * URL - Uniform Resource Locator (Immutable, ThreadSafe)
+ * 格式 protocal://username:password@ip:port/path?params
+ * 或者file:/path/to/file.txt,即文件格式是使用protocal:/path方式表示的
+ *
+ * 注意
+ * 1.参数可以存储url,即参数值是一个url.此时需要对url的内容进行编码处理
+ * 2.参数有一个是interface,表示调用的服务接口
+ * 3.参数可以是method.key组成的key,表示一个方法的参数对应的值
+ * 4.String getServiceKey() 返回值格式 $group参数值/$interface参数值:$version参数值
+
  * <p>
  * url example:
  * <ul>
@@ -93,7 +102,7 @@ public final class URL implements Serializable {
 
     private volatile transient Map<String, URL> urls;
 
-    private volatile transient String ip;
+    private volatile transient String ip;//使用host转换成ip地址
 
     private volatile transient String full;
 
@@ -156,7 +165,7 @@ public final class URL implements Serializable {
 		this.host = host;
 		this.port = (port < 0 ? 0 : port);
 		this.path = path;
-		// trim the beginning "/"
+		// trim the beginning "/"  去掉path前面所有的/信息
 		while(path != null && path.startsWith("/")) {
 		    path = path.substring(1);
 		}
@@ -170,10 +179,11 @@ public final class URL implements Serializable {
 
     /**
      * Parse url string
-     * 
+     * 解析url字符串
      * @param url URL string
      * @return URL instance
      * @see URL
+     * url格式 protocal://username:password@ip:port/path?params
      */
     public static URL valueOf(String url) {
         if (url == null || (url = url.trim()).length() == 0) {
@@ -187,8 +197,8 @@ public final class URL implements Serializable {
         String path = null;
         Map<String, String> parameters = null;
         int i = url.indexOf("?"); // seperator between body and parameters 
-        if (i >= 0) {
-            String[] parts = url.substring(i + 1).split("\\&");
+        if (i >= 0) {//先解析param
+            String[] parts = url.substring(i + 1).split("\\&");//按照&拆分
             parameters = new HashMap<String, String>();
             for (String part : parts) {
                 part = part.trim();
@@ -197,12 +207,13 @@ public final class URL implements Serializable {
                     if (j >= 0) {
                         parameters.put(part.substring(0, j), part.substring(j + 1));
                     } else {
-                        parameters.put(part, part);
+                        parameters.put(part, part);//key和value都是相同的,即key=key
                     }
                 }
             }
-            url = url.substring(0, i);
+            url = url.substring(0, i);//此时url就变成了protocal://username:password@ip:port/path
         }
+
         i = url.indexOf("://");
         if (i >= 0) {
             if(i == 0) throw new IllegalStateException("url missing protocol: \"" + url + "\"");
@@ -218,14 +229,17 @@ public final class URL implements Serializable {
                 url = url.substring(i + 1);
             }
         }
-        
+
+        //此时剩余url为 username:password@ip:port/path
         i = url.indexOf("/");
-        if (i >= 0) {
+        if (i >= 0) {//解析path
             path = url.substring(i + 1);
             url = url.substring(0, i);
         }
+
+        //此时剩余url为 username:password@ip:port
         i = url.indexOf("@");
-        if (i >= 0) {
+        if (i >= 0) {//说明有 username:password部分
             username = url.substring(0, i);
             int j = username.indexOf(":");
             if (j >= 0) {
@@ -234,11 +248,14 @@ public final class URL implements Serializable {
             }
             url = url.substring(i + 1);
         }
+
+        //此时剩余url为ip:port
         i = url.indexOf(":");
         if (i >= 0 && i < url.length() - 1) {
             port = Integer.parseInt(url.substring(i + 1));
             url = url.substring(0, i);
         }
+        //此时剩余url为ip
         if(url.length() > 0) host = url;
         return new URL(protocol, username, password, host, port, path, parameters);
     }
@@ -254,7 +271,8 @@ public final class URL implements Serializable {
 	public String getPassword() {
 		return password;
 	}
-	
+
+    //返回username:password
 	public String getAuthority() {
 	    if ((username == null || username.length() == 0)
 	            && (password == null || password.length() == 0)) {
@@ -301,10 +319,11 @@ public final class URL implements Serializable {
 	public String getBackupAddress() {
 		return getBackupAddress(0);
 	}
-	
+
+    //获取back备份地址集合,格式是ip:port,ip:port
 	public String getBackupAddress(int defaultPort) {
 		StringBuilder address = new StringBuilder(appendDefaultPort(getAddress(), defaultPort));
-        String[] backups = getParameter(Constants.BACKUP_KEY, new String[0]);
+        String[] backups = getParameter(Constants.BACKUP_KEY, new String[0]);//获取backup对应的数组
         if (backups != null && backups.length > 0) {
             for (String backup : backups) {
                 address.append(",");
@@ -342,14 +361,16 @@ public final class URL implements Serializable {
 	public String getPath() {
 		return path;
 	}
-	
+
+    // 针对path前面追加一个/,表示绝对路径
 	public String getAbsolutePath() {
         if (path != null && !path.startsWith("/")) {
             return "/" + path;
         }
         return path;
 	}
-	
+
+    //重新只改一个属性,创建新的url
 	public URL setProtocol(String protocol) {
 	    return new URL(protocol, username, password, host, port, path, getParameters());
 	}
@@ -391,10 +412,12 @@ public final class URL implements Serializable {
         return parameters;
     }
 
+    //该key对应的属性值需要解码
     public String getParameterAndDecoded(String key) {
         return getParameterAndDecoded(key, null);
     }
-    
+
+    //该key对应的属性值需要解码
     public String getParameterAndDecoded(String key, String defaultValue) {
         return decode(getParameter(key, defaultValue));
     }
@@ -402,7 +425,7 @@ public final class URL implements Serializable {
     public String getParameter(String key) {
         String value = parameters.get(key);
         if (value == null || value.length() == 0) {
-            value = parameters.get(Constants.DEFAULT_KEY_PREFIX + key);
+            value = parameters.get(Constants.DEFAULT_KEY_PREFIX + key);//default.key
         }
         return value;
     }
@@ -420,9 +443,10 @@ public final class URL implements Serializable {
         if (value == null || value.length() == 0) {
             return defaultValue;
         }
-        return Constants.COMMA_SPLIT_PATTERN.split(value);
+        return Constants.COMMA_SPLIT_PATTERN.split(value);//逗号拆分成数组
     }
-    
+
+    //对参数值是number的进行缓存,避免每次都转换成number
     private Map<String, Number> getNumbers() {
         if (numbers == null) { // 允许并发重复创建
             numbers = new ConcurrentHashMap<String, Number>();
@@ -430,6 +454,7 @@ public final class URL implements Serializable {
         return numbers;
     }
 
+    //对于参数值是url的进行缓存,避免每次的转换
     private Map<String, URL> getUrls() {
         if (urls == null) { // 允许并发重复创建
             urls = new ConcurrentHashMap<String, URL>();
@@ -437,6 +462,7 @@ public final class URL implements Serializable {
         return urls;
     }
 
+    //该key对应的value是一个url
     public URL getUrlParameter(String key) {
         URL u = getUrls().get(key);
         if (u != null) {
@@ -631,6 +657,7 @@ public final class URL implements Serializable {
         return URL.decode(getMethodParameter(method, key, defaultValue));
     }
 
+    //获取通过method.key组成的参数值
     public String getMethodParameter(String method, String key) {
         String value = parameters.get(method + "." + key);
         if (value == null || value.length() == 0) {
@@ -841,7 +868,8 @@ public final class URL implements Serializable {
         String value = getMethodParameter(method, key);
         return value != null && value.length() > 0;
     }
-    
+
+    //表示是不是本地
     public boolean isLocalHost() {
         return NetUtils.isLocalHost(host) || getParameter(Constants.LOCALHOST_KEY, false);
     }
@@ -849,7 +877,8 @@ public final class URL implements Serializable {
     public boolean isAnyHost() {
         return Constants.ANYHOST_VALUE.equals(host) || getParameter(Constants.ANYHOST_KEY, false);
     }
-    
+
+    //添加一个key=value,并且需要对该value进行编码处理,比如url作为一个param的value的时候,要继续编码处理
     public URL addParameterAndEncoded(String key, String value) {
         if(value == null || value.length() == 0) {
             return this;
@@ -955,10 +984,11 @@ public final class URL implements Serializable {
         if(hasAndEqual) return this;
 
         Map<String, String> map = new HashMap<String, String>(getParameters());
-        map.putAll(parameters);
+        map.putAll(parameters);//追加参数
         return new URL(protocol, username, password, host, port, path, map);
     }
-    
+
+    //方法比较巧妙,先添加参数的,然后用老的进行覆盖
 	public URL addParametersIfAbsent(Map<String, String> parameters) {
 		if (parameters == null || parameters.size() == 0) {
 			return this;
@@ -1017,11 +1047,13 @@ public final class URL implements Serializable {
         }
         return new URL(protocol, username, password, host, port, path, map);
 	}
-	
+
+    //清除所有的参数值
 	public URL clearParameters() {
         return new URL(protocol, username, password, host, port, path, new HashMap<String, String>());
     }
-	
+
+    //不仅可以获取参数,还可以获取其他元数据
 	public String getRawParameter(String key) {
 	    if ("protocol".equals(key))
             return protocol;
@@ -1100,14 +1132,20 @@ public final class URL implements Serializable {
 		buildParameters(buf, false, parameters);
 		return buf.toString();
 	}
-	
+
+    /**
+     *
+     * @param buf
+     * @param concat
+     * @param parameters 只选择这里面包含的参数进行输出
+     */
 	private void buildParameters(StringBuilder buf, boolean concat, String[] parameters) {
 	    if (getParameters() !=null && getParameters().size() > 0) {
             List<String> includes = (parameters == null || parameters.length == 0 ? null : Arrays.asList(parameters));
             boolean first = true;
-            for (Map.Entry<String, String> entry : new TreeMap<String, String>(getParameters()).entrySet()) {
+            for (Map.Entry<String, String> entry : new TreeMap<String, String>(getParameters()).entrySet()) {//循环所有的参数
                 if (entry.getKey() != null && entry.getKey().length() > 0
-                        && (includes == null || includes.contains(entry.getKey()))) {
+                        && (includes == null || includes.contains(entry.getKey()))) {//说明有包含关系
                     if (first) {
                         if (concat) {
                             buf.append("?");
@@ -1179,15 +1217,17 @@ public final class URL implements Serializable {
         }
     }
 
+    //表示获取该url对应的网站的ip信息
     public InetSocketAddress toInetSocketAddress() {
         return new InetSocketAddress(host, port);
     }
 
+    // $group参数值/$interface参数值:$version参数值
     public String getServiceKey() {
-        String inf = getServiceInterface();
+        String inf = getServiceInterface();//获取interface参数值
         if (inf == null) return null;
         StringBuilder buf = new StringBuilder();
-        String group = getParameter(Constants.GROUP_KEY);
+        String group = getParameter(Constants.GROUP_KEY);//group参数值
         if (group != null && group.length() > 0) {
             buf.append(group).append("/");
         }
@@ -1208,10 +1248,12 @@ public final class URL implements Serializable {
         return getServiceInterface();
     }
 
+    //获取interface参数值
     public String getServiceInterface() {
         return getParameter(Constants.INTERFACE_KEY, path);
     }
 
+    //添加服务接口参数
     public URL setServiceInterface(String service) {
         return addParameter(Constants.INTERFACE_KEY, service);
     }
@@ -1306,6 +1348,7 @@ public final class URL implements Serializable {
         return getMethodParameter(method, key, defaultValue);
     }
 
+    //对value进行编码
     public static String encode(String value) {
         if (value == null || value.length() == 0) { 
             return "";
@@ -1316,7 +1359,8 @@ public final class URL implements Serializable {
             throw new RuntimeException(e.getMessage(), e);
         }
     }
-    
+
+    //对value进行解码
     public static String decode(String value) {
         if (value == null || value.length() == 0) { 
             return "";

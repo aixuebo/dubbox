@@ -365,6 +365,7 @@ public final class StringUtils {
      * 
      * @param qs query string.
      * @return Parameters instance.
+     * 使用&进行拆分url的query变成一个数组
      */
 	public static Map<String, String> parseQueryString(String qs)
 	{

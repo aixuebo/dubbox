@@ -158,7 +158,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
     protected List<URL> loadRegistries(boolean provider) {
         checkRegistry();
         List<URL> registryList = new ArrayList<URL>();
-        if (registries != null && registries.size() > 0) {
+        if (registries != null && registries.size() > 0) {//加载zookeeper
             for (RegistryConfig config : registries) {
                 String address = config.getAddress();
                 if (address == null || address.length() == 0) {
@@ -186,7 +186,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                             map.put("protocol", "dubbo");
                         }
                     }
-                    List<URL> urls = UrlUtils.parseURLs(address, map);
+                    List<URL> urls = UrlUtils.parseURLs(address, map);//zookeeper://slavenode1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.0&organization=dubbox&owner=programmer&pid=13248&timestamp=1513683113665
                     for (URL url : urls) {
                         url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
                         url = url.setProtocol(Constants.REGISTRY_PROTOCOL);

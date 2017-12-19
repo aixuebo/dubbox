@@ -16,6 +16,7 @@ public class ProtocolUtils {
                           url.getParameter(Constants.GROUP_KEY));
     }
 
+    //  $serviceGroup/$serviceName:$serviceVersion:port
     public static String serviceKey(int port, String serviceName, String serviceVersion, String serviceGroup) {
         StringBuilder buf = new StringBuilder();
         if (serviceGroup != null && serviceGroup.length() > 0) {
@@ -32,6 +33,7 @@ public class ProtocolUtils {
         return buf.toString();
     }
 
+    //说明是三种generic之一
     public static boolean isGeneric(String generic) {
         return generic != null
             && !"".equals(generic)
@@ -40,6 +42,7 @@ public class ProtocolUtils {
             || Constants.GENERIC_SERIALIZATION_BEAN.equalsIgnoreCase(generic));
     }
 
+    //以下三个方法可以确定哪一种具体的generic类型
     public static boolean isDefaultGenericSerialization(String generic) {
         return isGeneric(generic)
             && Constants.GENERIC_SERIALIZATION_DEFAULT.equalsIgnoreCase(generic);

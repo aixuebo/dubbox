@@ -317,7 +317,7 @@ public class ExtensionLoader<T> {
 	            instance = holder.get();
 	            if (instance == null) {
 	                instance = createExtension(name);
-	                holder.set(instance);
+	                holder.set(instance);//比如instance为com.alibaba.dubbo.container.spring.SpringContainer
 	            }
 	        }
 		}

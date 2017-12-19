@@ -58,7 +58,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 
     private transient String beanName;
 
-    private transient boolean supportedApplicationListener;
+    private transient boolean supportedApplicationListener;//表示监听器已经开启
     
 	public ServiceBean() {
         super();
@@ -73,13 +73,14 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
 	}
 
 	public void setApplicationContext(ApplicationContext applicationContext) {
+        //applicationContext是org.springframework.context.support.ClassPathXmlApplicationContext
 		this.applicationContext = applicationContext;
 		SpringExtensionFactory.addApplicationContext(applicationContext);
 		if (applicationContext != null) {
 		    SPRING_CONTEXT = applicationContext;
 		    try {
 	            Method method = applicationContext.getClass().getMethod("addApplicationListener", new Class<?>[]{ApplicationListener.class}); // 兼容Spring2.0.1
-	            method.invoke(applicationContext, new Object[] {this});
+	            method.invoke(applicationContext, new Object[] {this});//添加事件监听器
 	            supportedApplicationListener = true;
 	        } catch (Throwable t) {
                 if (applicationContext instanceof AbstractApplicationContext) {
@@ -156,6 +157,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         }
         if (getApplication() == null
                 && (getProvider() == null || getProvider().getApplication() == null)) {
+            //spring中配置了哪些ApplicationConfig
             Map<String, ApplicationConfig> applicationConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ApplicationConfig.class, false, false);
             if (applicationConfigMap != null && applicationConfigMap.size() > 0) {
                 ApplicationConfig applicationConfig = null;

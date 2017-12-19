@@ -37,19 +37,20 @@ public class RpcUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcUtils.class);
 
+    //返回一个执行结果的返回值
     public static Class<?> getReturnType(Invocation invocation) {
         try {
             if (invocation != null && invocation.getInvoker() != null
                     && invocation.getInvoker().getUrl() != null
                     && ! invocation.getMethodName().startsWith("$")) {
-                String service = invocation.getInvoker().getUrl().getServiceInterface();
+                String service = invocation.getInvoker().getUrl().getServiceInterface();//找到请求的接口
                 if (service != null && service.length() > 0) {
-                    Class<?> cls = ReflectUtils.forName(service);
-                    Method method = cls.getMethod(invocation.getMethodName(), invocation.getParameterTypes());
+                    Class<?> cls = ReflectUtils.forName(service);//找到接口对应的class
+                    Method method = cls.getMethod(invocation.getMethodName(), invocation.getParameterTypes());//根据方法的名字以及参数类型找到方法
                     if (method.getReturnType() == void.class) {
                         return null;
                     }
-                    return method.getReturnType();
+                    return method.getReturnType();//获取方法的返回值
                 }
             }
         } catch (Throwable t) {
@@ -82,11 +83,12 @@ public class RpcUtils {
     private static final AtomicLong INVOKE_ID = new AtomicLong(0);
     
 	public static Long getInvocationId(Invocation inv) {
-    	String id = inv.getAttachment(Constants.ID_KEY);
+    	String id = inv.getAttachment(Constants.ID_KEY);//获取传递过来的id
 		return id == null ? null : new Long(id);
 	}
     
     /**
+     * 幂等的意味着对同一URL的多个请求应该返回同样的结果
      * 幂等操作:异步操作默认添加invocation id
      * @param url
      * @param inv
@@ -98,7 +100,7 @@ public class RpcUtils {
     }
     
     private static boolean isAttachInvocationId(URL url , Invocation invocation) {
-    	String value = url.getMethodParameter(invocation.getMethodName(), Constants.AUTO_ATTACH_INVOCATIONID_KEY);
+    	String value = url.getMethodParameter(invocation.getMethodName(), Constants.AUTO_ATTACH_INVOCATIONID_KEY);//获取该方法的invocationid.autoattach对应的参数值
     	if ( value == null ) {
     		//异步操作默认添加invocationid
     		return isAsync(url,invocation) ;
@@ -112,11 +114,11 @@ public class RpcUtils {
     }
     
     public static String getMethodName(Invocation invocation){
-    	if(Constants.$INVOKE.equals(invocation.getMethodName()) 
+    	if(Constants.$INVOKE.equals(invocation.getMethodName()) //$invoke 方法比较特别
                 && invocation.getArguments() != null 
                 && invocation.getArguments().length > 0 
                 && invocation.getArguments()[0] instanceof String){
-            return (String) invocation.getArguments()[0];
+            return (String) invocation.getArguments()[0];//第0个参数就是方法name
         }
     	return invocation.getMethodName();
     }

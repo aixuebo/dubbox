@@ -452,7 +452,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if ((contextPath == null || contextPath.length() == 0) && provider != null) {
             contextPath = provider.getContextpath();
         }
-        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);
+        URL url = new URL(name, host, port, (contextPath == null || contextPath.length() == 0 ? "" : contextPath + "/") + path, map);//rest://本地server服务的ip:8888/services/com.alibaba.dubbo.demo.user.facade.UserRestService?accepts=500&anyhost=true&application=demo-provider&dubbo=2.0.0&extension=com.alibaba.dubbo.demo.extension.TraceInterceptor,com.alibaba.dubbo.demo.extension.TraceFilter,com.alibaba.dubbo.demo.extension.ClientTraceFilter,com.alibaba.dubbo.demo.extension.DynamicTraceBinding,com.alibaba.dubbo.demo.extension.CustomExceptionMapper,com.alibaba.dubbo.rpc.protocol.rest.support.LoggingFilter&generic=false&group=annotationConfig&interface=com.alibaba.dubbo.demo.user.facade.UserRestService&methods=getUser,registerUser&organization=dubbox&owner=programmer&pid=13248&server=tomcat&side=provider&threads=500&timestamp=1513683433191&validation=true
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
                 .hasExtension(url.getProtocol())) {
