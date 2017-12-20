@@ -92,6 +92,7 @@ public class ClusterUtils {
             }
         }
 
+        //重新添加该url的参数集合
         return remoteUrl.clearParameters().addParameters(map);
     }
 

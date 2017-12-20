@@ -26,6 +26,7 @@ public class ArrayMerger implements Merger<Object[]> {
 
     public static final ArrayMerger INSTANCE = new ArrayMerger();
 
+    //数组合并merge
     public Object[] merge(Object[]... others) {
         if (others.length == 0) {
             return null;
@@ -33,7 +34,7 @@ public class ArrayMerger implements Merger<Object[]> {
         int totalLen = 0;
         for (int i = 0; i < others.length; i++) {
             Object item = others[i];
-            if (item != null && item.getClass().isArray()) {
+            if (item != null && item.getClass().isArray()) {//说明数组还是套着数组
                 totalLen += Array.getLength(item);
             } else {
                 throw new IllegalArgumentException(
@@ -46,6 +47,7 @@ public class ArrayMerger implements Merger<Object[]> {
             return null;
         }
 
+        //数组里面的元素类型,即使是数组套着数组,依然也是数组类型啊
         Class<?> type = others[0].getClass().getComponentType();
 
         Object result = Array.newInstance(type, totalLen);

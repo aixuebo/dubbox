@@ -26,7 +26,7 @@ public interface Node {
 
     /**
      * get url.
-     * 
+     * 服务提供者提供服务的url
      * @return url.
      */
     URL getUrl();

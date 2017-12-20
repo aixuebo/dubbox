@@ -295,7 +295,7 @@ public class ExtensionLoader<T> {
 
     /**
      * 返回指定名字的扩展。如果指定名字的扩展不存在，则抛异常 {@link IllegalStateException}.
-     *
+     * 找到name对应的spi服务
      * @param name
      * @return
      */

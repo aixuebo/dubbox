@@ -56,10 +56,10 @@ public abstract class AbstractConfigurator implements Configurator {
                     || configApplication.equals(currentApplication)) {
                 if (configuratorUrl.getPort() == 0 || url.getPort() == configuratorUrl.getPort()) {
                     Set<String> condtionKeys = new HashSet<String>();
-                    condtionKeys.add(Constants.CATEGORY_KEY);
-                    condtionKeys.add(Constants.CHECK_KEY);
-                    condtionKeys.add(Constants.DYNAMIC_KEY);
-                    condtionKeys.add(Constants.ENABLED_KEY);
+                    condtionKeys.add(Constants.CATEGORY_KEY);//category
+                    condtionKeys.add(Constants.CHECK_KEY);//check
+                    condtionKeys.add(Constants.DYNAMIC_KEY);//dynamic
+                    condtionKeys.add(Constants.ENABLED_KEY);//enabled
                     for (Map.Entry<String, String> entry : configuratorUrl.getParameters().entrySet()) {
                         String key = entry.getKey();
                         String value = entry.getValue();

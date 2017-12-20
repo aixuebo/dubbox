@@ -24,7 +24,7 @@ import com.alibaba.dubbo.rpc.Invoker;
 
 /**
  * random load balance.
- *
+ * 随机策略，配置值为random。可以设置权重，有利于充分利用服务器的资源，高配的可以设置权重大一些，低配的可以稍微小一些
  * @author qianlei
  * @author william.liangf
  */
@@ -32,14 +32,14 @@ public class RandomLoadBalance extends AbstractLoadBalance {
 
     public static final String NAME = "random";
 
-    private final Random random = new Random();
+    private final Random random = new Random();//随机数
 
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
         int length = invokers.size(); // 总个数
         int totalWeight = 0; // 总权重
         boolean sameWeight = true; // 权重是否都一样
         for (int i = 0; i < length; i++) {
-            int weight = getWeight(invokers.get(i), invocation);
+            int weight = getWeight(invokers.get(i), invocation);//计算权重
             totalWeight += weight; // 累计总权重
             if (sameWeight && i > 0
                     && weight != getWeight(invokers.get(i - 1), invocation)) {

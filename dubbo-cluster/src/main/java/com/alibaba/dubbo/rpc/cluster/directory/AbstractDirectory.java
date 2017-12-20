@@ -44,11 +44,11 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
 
     private final URL url ;
     
-    private volatile boolean destroyed = false;
+    private volatile boolean destroyed = false;//true表示摧毁
 
     private volatile URL consumerUrl ;
     
-	private volatile List<Router> routers;
+	private volatile List<Router> routers;//路由策略
     
     public AbstractDirectory(URL url) {
         this(url, null);
@@ -75,7 +75,7 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         if (localRouters != null && localRouters.size() > 0) {
             for (Router router: localRouters){
                 try {
-                    if (router.getUrl() == null || router.getUrl().getParameter(Constants.RUNTIME_KEY, true)) {
+                    if (router.getUrl() == null || router.getUrl().getParameter(Constants.RUNTIME_KEY, true)) {//runtime
                         invokers = router.route(invokers, getConsumerUrl(), invocation);
                     }
                 } catch (Throwable t) {
@@ -106,9 +106,9 @@ public abstract class AbstractDirectory<T> implements Directory<T> {
         // copy list
         routers = routers == null ? new  ArrayList<Router>() : new ArrayList<Router>(routers);
         // append url router
-    	String routerkey = url.getParameter(Constants.ROUTER_KEY);
+    	String routerkey = url.getParameter(Constants.ROUTER_KEY);//获取router路由类型
         if (routerkey != null && routerkey.length() > 0) {
-            RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);
+            RouterFactory routerFactory = ExtensionLoader.getExtensionLoader(RouterFactory.class).getExtension(routerkey);//找到key对应的spi服务
             routers.add(routerFactory.getRouter(url));
         }
         // append mock invoker selector

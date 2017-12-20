@@ -32,10 +32,11 @@ public class MergerFactory {
     private static final ConcurrentMap<Class<?>, Merger<?>> mergerCache =
             new ConcurrentHashMap<Class<?>, Merger<?>>();
 
+    //根据类型,返回如何合并数组
     public static <T> Merger<T> getMerger(Class<T> returnType) {
         Merger result;
-        if (returnType.isArray()) {
-            Class type = returnType.getComponentType();
+        if (returnType.isArray()) {//说明是数组
+            Class type = returnType.getComponentType();//具体的数组的类型
             result = mergerCache.get(type);
             if (result == null) {
                 loadMergers();
@@ -54,6 +55,7 @@ public class MergerFactory {
         return result;
     }
 
+    //加载所有的类型合并方式
     static void loadMergers() {
         Set<String> names = ExtensionLoader.getExtensionLoader(Merger.class)
                 .getSupportedExtensions();

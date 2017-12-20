@@ -23,6 +23,7 @@ import com.alibaba.dubbo.common.extension.SPI;
 @SPI
 public interface Merger<T> {
 
+    //如何合并元素
     T merge(T... items);
 
 }

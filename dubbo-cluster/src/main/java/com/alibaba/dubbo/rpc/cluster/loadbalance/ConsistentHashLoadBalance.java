@@ -31,7 +31,7 @@ import com.alibaba.dubbo.rpc.Invoker;
 
 /**
  * ConsistentHashLoadBalance
- * 
+ * 一致性Hash策略，具体配置方法可以参考Dubbo文档。相同调用参数的请求会发送到同一个服务提供方节点上，如果某个节点发生故障无法提供服务，则会基于一致性Hash算法映射到虚拟节点上（其他服务提供方）
  * @author william.liangf
  */
 public class ConsistentHashLoadBalance extends AbstractLoadBalance {
@@ -41,8 +41,8 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
     @SuppressWarnings("unchecked")
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
-        String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();
-        int identityHashCode = System.identityHashCode(invokers);
+        String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();//接口+方法
+        int identityHashCode = System.identityHashCode(invokers);//计算一个hash值
         ConsistentHashSelector<T> selector = (ConsistentHashSelector<T>) selectors.get(key);
         if (selector == null || selector.getIdentityHashCode() != identityHashCode) {
             selectors.put(key, new ConsistentHashSelector<T>(invokers, invocation.getMethodName(), identityHashCode));
@@ -51,6 +51,7 @@ public class ConsistentHashLoadBalance extends AbstractLoadBalance {
         return selector.select(invocation);
     }
 
+    //该对象对应一个具体的方法
     private static final class ConsistentHashSelector<T> {
 
         private final TreeMap<Long, Invoker<T>> virtualInvokers;

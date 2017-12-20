@@ -39,7 +39,7 @@ import com.alibaba.dubbo.rpc.cluster.Router;
 
 /**
  * ConditionRouter
- * 
+ * 通过url中的参数进行路由,找到满足条件的url
  * @author william.liangf
  */
 public class ConditionRouter implements Router, Comparable<Router> {
@@ -48,10 +48,11 @@ public class ConditionRouter implements Router, Comparable<Router> {
 
     private final URL url;
     
-    private final int priority;
+    private final int priority;//优先级
 
     private final boolean force;
 
+    //key是url中的某一个属性,value是该属性对应的匹配规则
     private final Map<String, MatchPair> whenCondition;
     
     private final Map<String, MatchPair> thenCondition;
@@ -61,15 +62,16 @@ public class ConditionRouter implements Router, Comparable<Router> {
         this.priority = url.getParameter(Constants.PRIORITY_KEY, 0);
         this.force = url.getParameter(Constants.FORCE_KEY, false);
         try {
-            String rule = url.getParameterAndDecoded(Constants.RULE_KEY);
+            String rule = url.getParameterAndDecoded(Constants.RULE_KEY);//rule规则
             if (rule == null || rule.trim().length() == 0) {
                 throw new IllegalArgumentException("Illegal route rule!");
             }
             rule = rule.replace("consumer.", "").replace("provider.", "");
+            //规则形式是 when => then
             int i = rule.indexOf("=>");
             String whenRule = i < 0 ? null : rule.substring(0, i).trim();
             String thenRule = i < 0 ? rule.trim() : rule.substring(i + 2).trim();
-            Map<String, MatchPair> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, MatchPair>() : parseRule(whenRule);
+            Map<String, MatchPair> when = StringUtils.isBlank(whenRule) || "true".equals(whenRule) ? new HashMap<String, MatchPair>() : parseRule(whenRule);//前者表示没设置when的情况,后者表示解析字符串,返回规则
             Map<String, MatchPair> then = StringUtils.isBlank(thenRule) || "false".equals(thenRule) ? null : parseRule(thenRule);
             // NOTE: When条件是允许为空的，外部业务来保证类似的约束条件
             this.whenCondition = when;
@@ -122,20 +124,22 @@ public class ConditionRouter implements Router, Comparable<Router> {
         return this.priority == c.priority ? url.toFullString().compareTo(c.url.toFullString()) : (this.priority > c.priority ? 1 : -1);
     }
 
+    //是否匹配when
     public boolean matchWhen(URL url) {
         return matchCondition(whenCondition, url, null);
     }
 
+    //是否匹配then
     public boolean matchThen(URL url, URL param) {
         return thenCondition != null && matchCondition(thenCondition, url, param);
     }
     
     private boolean matchCondition(Map<String, MatchPair> condition, URL url, URL param) {
         Map<String, String> sample = url.toMap();
-        for (Map.Entry<String, String> entry : sample.entrySet()) {
+        for (Map.Entry<String, String> entry : sample.entrySet()) {//循环所有的url中的属性
             String key = entry.getKey();
-            MatchPair pair = condition.get(key);
-            if (pair != null && ! pair.isMatch(entry.getValue(), param)) {
+            MatchPair pair = condition.get(key);//获取该属性对应的匹配规则
+            if (pair != null && ! pair.isMatch(entry.getValue(), param)) {//说明匹配不成功,则直接返回false
                 return false;
             }
         }
@@ -143,7 +147,8 @@ public class ConditionRouter implements Router, Comparable<Router> {
     }
     
     private static Pattern ROUTE_PATTERN = Pattern.compile("([&!=,]*)\\s*([^&!=,\\s]+)");
-    
+
+    //解析规则
     private static Map<String, MatchPair> parseRule(String rule)
             throws ParseException {
         Map<String, MatchPair> condition = new HashMap<String, MatchPair>();
@@ -212,16 +217,16 @@ public class ConditionRouter implements Router, Comparable<Router> {
     }
 
     private static final class MatchPair {
-        final Set<String> matches = new HashSet<String>();
+        final Set<String> matches = new HashSet<String>();//这些规则必须匹配成功
         final Set<String> mismatches = new HashSet<String>();
         public boolean isMatch(String value, URL param) {
             for (String match : matches) {
-                if (! UrlUtils.isMatchGlobPattern(match, value, param)) {
+                if (! UrlUtils.isMatchGlobPattern(match, value, param)) {//有一个规则不匹配成功,都是错误的
                     return false;
                 }
             }
             for (String mismatch : mismatches) {
-                if (UrlUtils.isMatchGlobPattern(mismatch, value, param)) {
+                if (UrlUtils.isMatchGlobPattern(mismatch, value, param)) {//每一个不匹配的规则匹配上了,都是错误的
                     return false;
                 }
             }

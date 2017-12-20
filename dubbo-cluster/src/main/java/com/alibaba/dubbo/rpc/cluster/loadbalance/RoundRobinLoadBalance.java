@@ -27,7 +27,7 @@ import com.alibaba.dubbo.rpc.Invoker;
 
 /**
  * Round robin load balance.
- *
+ * 轮询策略，配置值为roundrobin。
  * @author qian.lei
  * @author william.liangf
  */
@@ -39,13 +39,14 @@ public class RoundRobinLoadBalance extends AbstractLoadBalance {
 
     private final ConcurrentMap<String, AtomicPositiveInteger> weightSequences = new ConcurrentHashMap<String, AtomicPositiveInteger>();
 
+    //按照接口+方法选择服务器,让每一个服务+方法都会在所有服务器上轮训
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
-        String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();
+        String key = invokers.get(0).getUrl().getServiceKey() + "." + invocation.getMethodName();//接口+方法
         int length = invokers.size(); // 总个数
         int maxWeight = 0; // 最大权重
         int minWeight = Integer.MAX_VALUE; // 最小权重
         for (int i = 0; i < length; i++) {
-            int weight = getWeight(invokers.get(i), invocation);
+            int weight = getWeight(invokers.get(i), invocation);//计算权重
             maxWeight = Math.max(maxWeight, weight); // 累计最大权重
             minWeight = Math.min(minWeight, weight); // 累计最小权重
         }

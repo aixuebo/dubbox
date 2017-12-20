@@ -46,7 +46,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
 
     private final static int DEFAULT_ZOOKEEPER_PORT = 2181;
     
-    private final static String DEFAULT_ROOT = "dubbo";
+    private final static String DEFAULT_ROOT = "dubbo";//zookeeper的根目录
 
     private final String        root;
     
@@ -155,7 +155,8 @@ public class ZookeeperRegistry extends FailbackRegistry {
                     ChildListener zkListener = listeners.get(listener);
                     if (zkListener == null) {
                         listeners.putIfAbsent(listener, new ChildListener() {
-                            public void childChanged(String parentPath, List<String> currentChilds) {
+                            //监听的节点子节点有变化的时候触发该事件
+                            public void childChanged(String parentPath, List<String> currentChilds) {//参数是父节点 以及新的子节点集合
                             	ZookeeperRegistry.this.notify(url, listener, toUrlsWithEmpty(url, parentPath, currentChilds));
                             }
                         });

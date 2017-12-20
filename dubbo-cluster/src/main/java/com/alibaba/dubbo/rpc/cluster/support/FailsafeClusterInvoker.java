@@ -40,7 +40,13 @@ public class FailsafeClusterInvoker<T> extends AbstractClusterInvoker<T>{
     public FailsafeClusterInvoker(Directory<T> directory) {
         super(directory);
     }
-    
+
+    /**
+     * 去确定一个url,并且向他发送rpc请求,接收返回值
+     * @param invocation 要执行的方法
+     * @param invokers 已经警告路由后帅选出来的url子集
+     * @param loadbalance 负载均衡方式
+     */
     public Result doInvoke(Invocation invocation, List<Invoker<T>> invokers, LoadBalance loadbalance) throws RpcException {
         try {
             checkInvokers(invokers, invocation);

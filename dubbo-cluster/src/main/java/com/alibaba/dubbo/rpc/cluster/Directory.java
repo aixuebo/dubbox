@@ -34,14 +34,14 @@ public interface Directory<T> extends Node {
     
     /**
      * get service type.
-     * 
+     * 服务的接口
      * @return service type.
      */
     Class<T> getInterface();
 
     /**
      * list invokers.
-     * 
+     * 获取invoker集合---每一个invoker都是提供服务接口的实现类,因为该服务可能部署在多个节点上,因此是一个集合
      * @return invokers
      */
     List<Invoker<T>> list(Invocation invocation) throws RpcException;

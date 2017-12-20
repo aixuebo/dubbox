@@ -26,7 +26,7 @@ import com.alibaba.dubbo.rpc.RpcStatus;
 
 /**
  * LeastActiveLoadBalance
- * 
+ * 配置值为leastactive。根据请求调用的次数计数，处理请求更慢的节点会受到更少的请求
  * @author william.liangf
  */
 public class LeastActiveLoadBalance extends AbstractLoadBalance {

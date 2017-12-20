@@ -29,6 +29,7 @@ public class AbsentConfigurator extends AbstractConfigurator {
         super(url);
     }
 
+    //只添加新的参数,老的参数不能覆盖
     public URL doConfigure(URL currentUrl, URL configUrl) {
         return currentUrl.addParametersIfAbsent(configUrl.getParameters());
     }

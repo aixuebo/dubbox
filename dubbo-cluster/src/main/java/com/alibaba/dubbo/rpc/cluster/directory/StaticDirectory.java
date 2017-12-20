@@ -27,6 +27,8 @@ import com.alibaba.dubbo.rpc.cluster.Router;
  * StaticDirectory
  * 
  * @author william.liangf
+ * Directory代表多个Invoker，可以把它看成List，但与List不同的是，它的值可能是动态变化的，比如注册中心推送变更。
+ * 因为同一个服务可能部署在多台节点上,因此他就是多个Invoker,因为每一个Invoker持有不同的url,但是提供的服务都是相同的
  */
 public class StaticDirectory<T> extends AbstractDirectory<T> {
     
@@ -55,6 +57,7 @@ public class StaticDirectory<T> extends AbstractDirectory<T> {
         return invokers.get(0).getInterface();
     }
 
+    //有一个invoker是可用的,则结果就是true
     public boolean isAvailable() {
         if (isDestroyed()) {
             return false;
@@ -77,7 +80,8 @@ public class StaticDirectory<T> extends AbstractDirectory<T> {
         }
         invokers.clear();
     }
-    
+
+    //获取invoker集合
     @Override
     protected List<Invoker<T>> doList(Invocation invocation) throws RpcException {
 

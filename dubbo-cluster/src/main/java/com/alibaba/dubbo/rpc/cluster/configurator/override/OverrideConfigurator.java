@@ -29,6 +29,7 @@ public class OverrideConfigurator extends AbstractConfigurator {
         super(url);
     }
 
+    //使用后面新的url参数全部覆盖老的url参数
     public URL doConfigure(URL currentUrl, URL configUrl) {
         return currentUrl.addParameters(configUrl.getParameters());
     }

@@ -28,13 +28,16 @@ import com.alibaba.dubbo.rpc.cluster.support.FailoverCluster;
  * <a href="http://en.wikipedia.org/wiki/Fault-tolerant_system">Fault-Tolerant</a>
  * 
  * @author william.liangf
+ * Cluster将Directory中的多个Invoker伪装成一个Invoker，对上层透明，伪装过程包含了容错逻辑，调用失败后，重试另一个。
+ * 集群表示一个服务在不同的节点上部署,即服务的高可用
  */
 @SPI(FailoverCluster.NAME)
 public interface Cluster {
 
     /**
      * Merge the directory invokers to a virtual invoker.
-     * 
+     * 该返回值虽然是一个Invoker,但是该Invoker不是最终要执行的Invoker,而是可以进一步帅选的操作.但是最终Invoker调用invoker方法后,一定效果是一样的,发送RPC请求,并且等待回收了
+     * 但是在返回值的Invoker中可以进行选择逻辑,这个要注意一下
      * @param <T>
      * @param directory
      * @return cluster invoker

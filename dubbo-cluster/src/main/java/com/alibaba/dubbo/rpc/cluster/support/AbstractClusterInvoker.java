@@ -216,10 +216,12 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 
         LoadBalance loadbalance;
         
-        List<Invoker<T>> invokers = list(invocation);
+        List<Invoker<T>> invokers = list(invocation);//这一步已经筛选在全部的url服务中,根据路由规则找到一个url子集了
+
+        //下面要在路由后的子集中使用负载均衡找到一个invoker
         if (invokers != null && invokers.size() > 0) {
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(invokers.get(0).getUrl()
-                    .getMethodParameter(invocation.getMethodName(),Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));
+                    .getMethodParameter(invocation.getMethodName(),Constants.LOADBALANCE_KEY, Constants.DEFAULT_LOADBALANCE));//获取url参数中loadbalance调度信息,找到对应的loadbalance对象
         } else {
             loadbalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(Constants.DEFAULT_LOADBALANCE);
         }
@@ -253,9 +255,16 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         }
     }
 
+    /**
+     * 去确定一个url,并且向他发送rpc请求,接收返回值
+     * @param invocation 要执行的方法
+     * @param invokers 已经警告路由后帅选出来的url子集
+     * @param loadbalance 负载均衡方式
+     */
     protected abstract Result doInvoke(Invocation invocation, List<Invoker<T>> invokers,
                                        LoadBalance loadbalance) throws RpcException;
-    
+
+    //这一步已经筛选在全部的url服务中,根据路由规则找到一个url子集了
     protected  List<Invoker<T>> list(Invocation invocation) throws RpcException {
     	List<Invoker<T>> invokers = directory.list(invocation);
     	return invokers;
