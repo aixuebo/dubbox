@@ -70,40 +70,49 @@ public class ExtensionLoader<T> {
     private static final String DUBBO_INTERNAL_DIRECTORY = DUBBO_DIRECTORY + "internal/";
 
     private static final Pattern NAME_SEPARATOR = Pattern.compile("\\s*[,]+\\s*");
-    
+
+    //每一个接口对应的ExtensionLoader实例
     private static final ConcurrentMap<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<Class<?>, ExtensionLoader<?>>();
 
+    //已经实例化的class
     private static final ConcurrentMap<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<Class<?>, Object>();
 
     // ==============================
 
-    private final Class<?> type;
+    private final Class<?> type;//接口路径,由spi注解决定的
 
     private final ExtensionFactory objectFactory;
 
+    //因为class会被指定多个name,因此要有反向映射关系
     private final ConcurrentMap<Class<?>, String> cachedNames = new ConcurrentHashMap<Class<?>, String>();
-    
+
+    //name作为key,value作为该name对应的class
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String,Class<?>>>();
 
+    //代理的信息
     private final Map<String, Activate> cachedActivates = new ConcurrentHashMap<String, Activate>();
 
+    //一个代理对象
     private volatile Class<?> cachedAdaptiveClass = null;
 
     private final ConcurrentMap<String, Holder<Object>> cachedInstances = new ConcurrentHashMap<String, Holder<Object>>();
 
-    private String cachedDefaultName;
+    private String cachedDefaultName;//缓存的该app对应的spi注解的value,即默认的name,根据该name返回对应的class实现类
 
     private final Holder<Object> cachedAdaptiveInstance = new Holder<Object>();
     private volatile Throwable createAdaptiveInstanceError;
 
-    private Set<Class<?>> cachedWrapperClasses;
-    
+    private Set<Class<?>> cachedWrapperClasses;//需要包装的class
+
+    //解析配置文件的时候,key为出问题的一行数据,value为异常内容
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<String, IllegalStateException>();
-    
+
+    //true表示该类是否有Spi这个注解
     private static <T> boolean withExtensionAnnotation(Class<T> type) {
         return type.isAnnotationPresent(SPI.class);
     }
-    
+
+    //参数必须是一个接口,并且有spi这个注解
     @SuppressWarnings("unchecked")
     public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
         if (type == null)
@@ -193,7 +202,7 @@ public class ExtensionLoader<T> {
     public List<T> getActivateExtension(URL url, String[] values, String group) {
         List<T> exts = new ArrayList<T>();
         List<String> names = values == null ? new ArrayList<String>(0) : Arrays.asList(values);
-        if (! names.contains(Constants.REMOVE_VALUE_PREFIX + Constants.DEFAULT_KEY)) {
+        if (! names.contains(Constants.REMOVE_VALUE_PREFIX + Constants.DEFAULT_KEY)) {//-.default
             getExtensionClasses();
             for (Map.Entry<String, Activate> entry : cachedActivates.entrySet()) {
                 String name = entry.getKey();
@@ -230,7 +239,8 @@ public class ExtensionLoader<T> {
         }
         return exts;
     }
-    
+
+    //表示group确实是在groups组内存在
     private boolean isMatchGroup(String group, String[] groups) {
         if (group == null || group.length() == 0) {
             return true;
@@ -244,7 +254,8 @@ public class ExtensionLoader<T> {
         }
         return false;
     }
-    
+
+    //true表示url的参数里面有匹配的activate
     private boolean isActive(Activate activate, URL url) {
         String[] keys = activate.value();
         if (keys == null || keys.length == 0) {
@@ -336,6 +347,7 @@ public class ExtensionLoader<T> {
         return getExtension(cachedDefaultName);
 	}
 
+    //是否有这个name对应的class配置
 	public boolean hasExtension(String name) {
 	    if (name == null || name.length() == 0)
 	        throw new IllegalArgumentException("Extension name == null");
@@ -470,6 +482,7 @@ public class ExtensionLoader<T> {
         return (T) instance;
     }
 
+    //说明发现异常了
     private IllegalStateException findException(String name) {
         for (Map.Entry<String, IllegalStateException> entry : exceptions.entrySet()) {
             if (entry.getKey().toLowerCase().contains(name.toLowerCase())) {
@@ -494,11 +507,12 @@ public class ExtensionLoader<T> {
         return new IllegalStateException(buf.toString());
     }
 
+    //创建name对应的class实例
     @SuppressWarnings("unchecked")
     private T createExtension(String name) {
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
-            throw findException(name);
+            throw findException(name);//打印异常
         }
         try {
             T instance = (T) EXTENSION_INSTANCES.get(clazz);
@@ -547,7 +561,8 @@ public class ExtensionLoader<T> {
         }
         return instance;
     }
-    
+
+    //找到name对应的class
 	private Class<?> getExtensionClass(String name) {
 	    if (type == null)
 	        throw new IllegalArgumentException("Extension type == null");
@@ -595,11 +610,12 @@ public class ExtensionLoader<T> {
         loadFile(extensionClasses, SERVICES_DIRECTORY);
         return extensionClasses;
     }
-    
+
+    //加载匹配的文件---返回值key为配置文件中的name,value为具体的class
     private void loadFile(Map<String, Class<?>> extensionClasses, String dir) {
-        String fileName = dir + type.getName();
+        String fileName = dir + type.getName();//加载目录下的接口对应的文件
         try {
-            Enumeration<java.net.URL> urls;
+            Enumeration<java.net.URL> urls;//加载所有的jar包下 匹配的路径内容
             ClassLoader classLoader = findClassLoader();
             if (classLoader != null) {
                 urls = classLoader.getResources(fileName);
@@ -607,7 +623,7 @@ public class ExtensionLoader<T> {
                 urls = ClassLoader.getSystemResources(fileName);
             }
             if (urls != null) {
-                while (urls.hasMoreElements()) {
+                while (urls.hasMoreElements()) {//获取每一个匹配该接口的文件
                     java.net.URL url = urls.nextElement();
                     try {
                         BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), "utf-8"));
@@ -615,24 +631,24 @@ public class ExtensionLoader<T> {
                             String line = null;
                             while ((line = reader.readLine()) != null) {
                                 final int ci = line.indexOf('#');
-                                if (ci >= 0) line = line.substring(0, ci);//取消注解内容
+                                if (ci >= 0) line = line.substring(0, ci);//取消注解内容,文件内容是key=value形式
                                 line = line.trim();
                                 if (line.length() > 0) {
                                     try {
                                         String name = null;
                                         int i = line.indexOf('=');
                                         if (i > 0) {
-                                            name = line.substring(0, i).trim();
-                                            line = line.substring(i + 1).trim();
+                                            name = line.substring(0, i).trim();//key
+                                            line = line.substring(i + 1).trim();//value
                                         }
                                         if (line.length() > 0) {
                                             Class<?> clazz = Class.forName(line, true, classLoader);
-                                            if (! type.isAssignableFrom(clazz)) {
+                                            if (! type.isAssignableFrom(clazz)) {//说明该class一定是type的子类
                                                 throw new IllegalStateException("Error when load extension class(interface: " +
                                                         type + ", class line: " + clazz.getName() + "), class " 
                                                         + clazz.getName() + "is not subtype of interface.");
                                             }
-                                            if (clazz.isAnnotationPresent(Adaptive.class)) {
+                                            if (clazz.isAnnotationPresent(Adaptive.class)) {//表示class是否有Adaptive这个注解
                                                 if(cachedAdaptiveClass == null) {
                                                     cachedAdaptiveClass = clazz;
                                                 } else if (! cachedAdaptiveClass.equals(clazz)) {
@@ -642,18 +658,18 @@ public class ExtensionLoader<T> {
                                                 }
                                             } else {
                                                 try {
-                                                    clazz.getConstructor(type);
+                                                    clazz.getConstructor(type);//构造函数需要接口?说明是wapper包装对象
                                                     Set<Class<?>> wrappers = cachedWrapperClasses;
                                                     if (wrappers == null) {
                                                         cachedWrapperClasses = new ConcurrentHashSet<Class<?>>();
                                                         wrappers = cachedWrapperClasses;
                                                     }
                                                     wrappers.add(clazz);
-                                                } catch (NoSuchMethodException e) {
-                                                    clazz.getConstructor();
-                                                    if (name == null || name.length() == 0) {
+                                                } catch (NoSuchMethodException e) {//说明是接口的实现类
+                                                    clazz.getConstructor();//创建无参数的构造函数
+                                                    if (name == null || name.length() == 0) {//说明没有配置name属性,因此要进行默认值赋值
                                                         name = findAnnotationName(clazz);
-                                                        if (name == null || name.length() == 0) {
+                                                        if (name == null || name.length() == 0) {//依然找不到---以下代码可以删除了,因为findAnnotationName已经包含了这段逻辑
                                                             if (clazz.getSimpleName().length() > type.getSimpleName().length()
                                                                     && clazz.getSimpleName().endsWith(type.getSimpleName())) {
                                                                 name = clazz.getSimpleName().substring(0, clazz.getSimpleName().length() - type.getSimpleName().length()).toLowerCase();
@@ -662,7 +678,7 @@ public class ExtensionLoader<T> {
                                                             }
                                                         }
                                                     }
-                                                    String[] names = NAME_SEPARATOR.split(name);
+                                                    String[] names = NAME_SEPARATOR.split(name);//可能名字有多个
                                                     if (names != null && names.length > 0) {
                                                         Activate activate = clazz.getAnnotation(Activate.class);
                                                         if (activate != null) {
@@ -703,13 +719,15 @@ public class ExtensionLoader<T> {
                     type + ", description file: " + fileName + ").", t);
         }
     }
-    
+
+    //获取配置文件中的name,在class里面定义的Extension注解里面存储
+    //即返回配置文件中的name--前提是配置文件没有配置name的话
     @SuppressWarnings("deprecation")
     private String findAnnotationName(Class<?> clazz) {
         com.alibaba.dubbo.common.Extension extension = clazz.getAnnotation(com.alibaba.dubbo.common.Extension.class);
         if (extension == null) {
-            String name = clazz.getSimpleName();
-            if (name.endsWith(type.getSimpleName())) {
+            String name = clazz.getSimpleName();//类名字
+            if (name.endsWith(type.getSimpleName())) {//如果以接口名字结尾,则将接口名字去掉
                 name = name.substring(0, name.length() - type.getSimpleName().length());
             }
             return name.toLowerCase();

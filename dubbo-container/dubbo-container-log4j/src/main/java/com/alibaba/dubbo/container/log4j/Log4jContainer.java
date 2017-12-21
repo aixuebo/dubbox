@@ -50,7 +50,7 @@ public class Log4jContainer implements Container {
                 level = DEFAULT_LOG4J_LEVEL;
             }
             Properties properties = new Properties();
-            properties.setProperty("log4j.rootLogger", level + ",application");
+            properties.setProperty("log4j.rootLogger", level + ",application");//log4j.rootLogger=info,application
             properties.setProperty("log4j.appender.application", "org.apache.log4j.DailyRollingFileAppender");
             properties.setProperty("log4j.appender.application.File", file);
             properties.setProperty("log4j.appender.application.Append", "true");

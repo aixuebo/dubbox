@@ -21,7 +21,7 @@ import com.alibaba.dubbo.common.extension.SPI;
 
 /**
  * 日志输出器供给器
- *
+ * 适配器,可以适配不同的log框架
  * @author william.liangf
  */
 @SPI

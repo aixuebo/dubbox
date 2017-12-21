@@ -32,7 +32,7 @@ public class JavaConfigContainer implements Container {
 
     public static final String SPRING_JAVACONFIG = "dubbo.spring.javaconfig";
 
-    public static final String DEFAULT_SPRING_JAVACONFIG = "dubbo.spring.javaconfig";
+    public static final String DEFAULT_SPRING_JAVACONFIG = "dubbo.spring.javaconfig";//可以存储包名,也可以是具体的class，如果是包名,表示该名字下面就是存储的各种引用对象
 
     static AnnotationConfigApplicationContext context;//该方法是静态的,一旦启动后就可以用该方法了
 

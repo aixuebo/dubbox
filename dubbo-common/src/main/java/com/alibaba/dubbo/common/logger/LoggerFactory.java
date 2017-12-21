@@ -38,13 +38,14 @@ public class LoggerFactory {
 	}
 
 	private static volatile LoggerAdapter LOGGER_ADAPTER;
-	
+
+    //key是日志的class或者name,value是具体的日志对象
 	private static final ConcurrentMap<String, FailsafeLogger> LOGGERS = new ConcurrentHashMap<String, FailsafeLogger>();
 
 	// 查找常用的日志框架
 	static {
 	    String logger = System.getProperty("dubbo.application.logger");
-	    if ("slf4j".equals(logger)) {
+        if ("slf4j".equals(logger)) {
     		setLoggerAdapter(new Slf4jLoggerAdapter());
     	} else if ("jcl".equals(logger)) {
     		setLoggerAdapter(new JclLoggerAdapter());

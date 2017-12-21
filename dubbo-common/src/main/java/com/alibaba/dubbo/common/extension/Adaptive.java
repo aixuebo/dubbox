@@ -31,6 +31,7 @@ import com.alibaba.dubbo.common.URL;
  * 
  * @see ExtensionLoader
  * @see URL
+ * 表示自适应,即创建一个代理类
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

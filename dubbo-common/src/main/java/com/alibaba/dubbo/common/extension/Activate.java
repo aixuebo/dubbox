@@ -41,6 +41,7 @@ import java.lang.annotation.Target;
  * @see SPI
  * @see ExtensionLoader
  * @see ExtensionLoader#getActivateExtension(com.alibaba.dubbo.common.URL, String[], String)
+ * 表示激活
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

@@ -53,7 +53,7 @@ public class Log4jLoggerAdapter implements LoggerAdapter {
 	}
 
 	public Logger getLogger(Class<?> key) {
-		return new Log4jLogger(LogManager.getLogger(key));
+		return new Log4jLogger(LogManager.getLogger(key));//产生log4j的log对象
 	}
 
 	public Logger getLogger(String key) {

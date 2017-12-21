@@ -88,7 +88,7 @@ public class Main {
             System.exit(1);
         }
         synchronized (Main.class) {
-            while (running) {
+            while (running) {//一直睡眠,方便上下文初始化的spring的bean可以被调用,否则加载完的spring就会销毁了
                 try {
                     Main.class.wait();
                 } catch (Throwable e) {

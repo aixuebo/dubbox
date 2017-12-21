@@ -54,7 +54,7 @@ yyy=com.foo.YyyProtocol
 public @interface SPI {
 
     /**
-     * 缺省扩展点名。
+     * 缺省扩展点名。表示默认的name
      */
 	String value() default "";
 

@@ -24,7 +24,7 @@ public class Log4jLogger implements Logger {
 
 	private static final String FQCN = FailsafeLogger.class.getName();
 
-	private final org.apache.log4j.Logger logger;
+	private final org.apache.log4j.Logger logger;//真正持有的是一个log4j的对象
 
 	public Log4jLogger(org.apache.log4j.Logger logger) {
 		this.logger = logger;

@@ -19,9 +19,15 @@ import com.alibaba.dubbo.common.Version;
 import com.alibaba.dubbo.common.logger.Logger;
 import com.alibaba.dubbo.common.utils.NetUtils;
 
+/**
+ * 一个代理类,作用:
+ * 1.当日志组件抛异常的时候,可以对代码健壮性没影响,即该类会被catch住
+ * 2.对所有的日志进行拦截,输出哪个节点打印的日志,即appendContextMessage方法
+ */
+
 public class FailsafeLogger implements Logger {
 
-	private Logger logger;
+	private Logger logger;//代理对象
 
 	public FailsafeLogger(Logger logger) {
 		this.logger = logger;

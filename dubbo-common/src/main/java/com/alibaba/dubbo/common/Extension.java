@@ -48,6 +48,8 @@ import java.lang.annotation.Target;
  * @author william.liangf
  * @author ding.lid
  * @export
+ *
+ * 表示扩展的name,即配置文件中的name
  */
 @Deprecated
 @Documented
