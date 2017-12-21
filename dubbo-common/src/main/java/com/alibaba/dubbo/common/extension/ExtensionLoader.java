@@ -345,7 +345,8 @@ public class ExtensionLoader<T> {
 	        return false;
 	    }
 	}
-    
+
+    //返回支持的所有实现类集合
 	public Set<String> getSupportedExtensions() {
         Map<String, Class<?>> clazzes = getExtensionClasses();
         return Collections.unmodifiableSet(new TreeSet<String>(clazzes.keySet()));
@@ -573,7 +574,7 @@ public class ExtensionLoader<T> {
         return classes;
 	}
 
-    // 此方法已经getExtensionClasses方法同步过。
+    // 此方法已经getExtensionClasses方法同步过。-----返回支持的所有实现类集合
     private Map<String, Class<?>> loadExtensionClasses() {
         final SPI defaultAnnotation = type.getAnnotation(SPI.class);
         if(defaultAnnotation != null) {

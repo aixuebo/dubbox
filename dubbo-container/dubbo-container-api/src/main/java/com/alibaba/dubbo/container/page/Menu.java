@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 
 /**
  * Menu
- * 
+ * 表示一个菜单的名字  描述 以及顺序
  * @author william.liangf
  */
 @Documented

@@ -34,7 +34,7 @@ public class JavaConfigContainer implements Container {
 
     public static final String DEFAULT_SPRING_JAVACONFIG = "dubbo.spring.javaconfig";
 
-    static AnnotationConfigApplicationContext context;
+    static AnnotationConfigApplicationContext context;//该方法是静态的,一旦启动后就可以用该方法了
 
     public static AnnotationConfigApplicationContext getContext() {
         return context;

@@ -31,17 +31,17 @@ import com.alibaba.dubbo.container.page.PageHandler;
 
 /**
  * SystemPageHandler
- * 
+ * 打印系统环境信息
  * @author william.liangf
  */
 @Menu(name = "System", desc = "Show system environment information.", order = Integer.MAX_VALUE - 10000)
 public class SystemPageHandler implements PageHandler {
 
     public Page handle(URL url) {
-        List<List<String>> rows = new ArrayList<List<String>>();
+        List<List<String>> rows = new ArrayList<List<String>>();//结果集,每一个元素又是一个多列组成的集合
         List<String> row;
         
-        row = new ArrayList<String>();
+        row = new ArrayList<String>();//创建一行数据
         row.add("Version");
         row.add(Version.getVersion(SystemPageHandler.class, "2.0.0"));
         rows.add(row);
@@ -74,7 +74,7 @@ public class SystemPageHandler implements PageHandler {
         
         row = new ArrayList<String>();
         row.add("Uptime");
-        row.add(formatUptime(ManagementFactory.getRuntimeMXBean().getUptime()));
+        row.add(formatUptime(ManagementFactory.getRuntimeMXBean().getUptime()));//程序运行多久了
         rows.add(row);
 
         row = new ArrayList<String>();
@@ -83,7 +83,7 @@ public class SystemPageHandler implements PageHandler {
         rows.add(row);
         
         return new Page("System", "System", new String[] {
-                "Property", "Value" }, rows);
+                "Property", "Value" }, rows);//表示一行两列,分别是属性名和属性值
     }
 
     private static final long SECOND = 1000;

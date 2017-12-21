@@ -32,7 +32,7 @@ import com.alibaba.dubbo.container.page.PageHandler;
 
 /**
  * StatusPageHandler
- * 
+ * 打印StatusChecker的结果
  * @author william.liangf
  */
 @Menu(name = "Status", desc = "Show system status.", order = Integer.MAX_VALUE - 12000)
@@ -40,9 +40,10 @@ public class StatusPageHandler implements PageHandler {
 
     public Page handle(URL url) {
         List<List<String>> rows = new ArrayList<List<String>>();
+        //返回支持的所有实现类集合
         Set<String> names = ExtensionLoader.getExtensionLoader(StatusChecker.class).getSupportedExtensions();
         Map<String, Status> statuses = new HashMap<String, Status>();
-        for (String name : names) {
+        for (String name : names) {//查看每一个具体的实现类
             StatusChecker checker = ExtensionLoader.getExtensionLoader(StatusChecker.class).getExtension(name);
             List<String> row = new ArrayList<String>();
             row.add(name);
@@ -67,10 +68,12 @@ public class StatusPageHandler implements PageHandler {
         }
     }
 
+    //使用不同的颜色打印级别名字,比如info
     private String getLevelHtml(Status.Level level) {
         return "<font color=\"" + getLevelColor(level) + "\">" + level.name() + "</font>";
     }
 
+    //报警级别对应的字体颜色
     private String getLevelColor(Status.Level level) {
         if (level == Status.Level.OK) {
             return "green";

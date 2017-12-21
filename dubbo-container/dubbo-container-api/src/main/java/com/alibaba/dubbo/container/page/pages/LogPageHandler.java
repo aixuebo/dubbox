@@ -38,7 +38,7 @@ import com.alibaba.dubbo.container.page.PageHandler;
 
 /**
  * LogPageHandler
- * 
+ * 打印日志的内容
  * @author william.liangf
  */
 @Menu(name = "Log", desc = "Show system log.", order = Integer.MAX_VALUE - 11000)
@@ -76,7 +76,7 @@ public class LogPageHandler implements PageHandler {
 		String modified = "Not exist";
 		if (file != null && file.exists()) {
 			try {
-				FileInputStream fis = new FileInputStream(file);
+				FileInputStream fis = new FileInputStream(file);//读取file文件的内容
 				FileChannel channel = fis.getChannel();
 				size = channel.size();
 				ByteBuffer bb;
@@ -90,17 +90,18 @@ public class LogPageHandler implements PageHandler {
 				}
 				bb.flip();
 				content = new String(bb.array()).replace("<", "&lt;")
-						.replace(">", "&gt;").replace("\n", "<br/><br/>");
+						.replace(">", "&gt;").replace("\n", "<br/><br/>");//日志内容进行大于 小于符号替换
 				modified = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
-						.format(new Date(file.lastModified()));
+						.format(new Date(file.lastModified()));//最后修改时间
 			} catch (IOException e) {
 			}
 		}
 		Level level = LogManager.getRootLogger().getLevel();
         List<List<String>> rows = new ArrayList<List<String>>();
         List<String> row = new ArrayList<String>();
-        row.add(content);
+        row.add(content);//日志内容
         rows.add(row);
+		//打印日志 文件名、万金啊大小、最后修改时间,日志级别
         return new Page("Log", "Log",  new String[] {(file == null ? "" : file.getName()) + ", " + size + " bytes, " + modified + ", " + level}, rows);
     }
 

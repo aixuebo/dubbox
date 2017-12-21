@@ -26,13 +26,13 @@ import java.util.List;
  */
 public class Page {
 
-    private final String navigation;
+    private final String navigation;//导航
     
-    private final String title;
+    private final String title;//标题
 
-    private final List<String> columns;
+    private final List<String> columns;//列名字集合
 
-    private final List<List<String>> rows;
+    private final List<List<String>> rows;//具体行数据
     
     public Page(String navigation) {
         this(navigation, (String) null, (String[]) null, (List<List<String>>) null);
