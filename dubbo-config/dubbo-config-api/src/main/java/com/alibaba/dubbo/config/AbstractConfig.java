@@ -134,35 +134,35 @@ public abstract class AbstractConfig implements Serializable {
         }
     }
 
-    protected static void appendProperties(AbstractConfig config) {
+    protected static void appendProperties(AbstractConfig config) {//从系统或者dubbo.properties配置文件中追加默认的属性
         if (config == null) {
             return;
         }
-        String prefix = "dubbo." + getTagName(config.getClass()) + ".";
+        String prefix = "dubbo." + getTagName(config.getClass()) + ".";//dubbo.application.  因此config获取的是具体的实现类
         Method[] methods = config.getClass().getMethods();
         for (Method method : methods) {
             try {
                 String name = method.getName();
                 if (name.length() > 3 && name.startsWith("set") && Modifier.isPublic(method.getModifiers()) 
                         && method.getParameterTypes().length == 1 && isPrimitive(method.getParameterTypes()[0])) {
-                    String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");
+                    String property = StringUtils.camelToSplitName(name.substring(3, 4).toLowerCase() + name.substring(4), "-");//获取原始的方法对应的属性name
 
                     String value = null;
-                    if (config.getId() != null && config.getId().length() > 0) {
-                        String pn = prefix + config.getId() + "." + property;
+                    if (config.getId() != null && config.getId().length() > 0) {//id是demo-provider
+                        String pn = prefix + config.getId() + "." + property;//dubbo.application.demo-provider.name
                         value = System.getProperty(pn);
                         if(! StringUtils.isBlank(value)) {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }
                     }
                     if (value == null || value.length() == 0) {
-                        String pn = prefix + property;
+                        String pn = prefix + property;//dubbo.application.name
                         value = System.getProperty(pn);
                         if(! StringUtils.isBlank(value)) {
                             logger.info("Use System Property " + pn + " to config dubbo");
                         }
                     }
-                    if (value == null || value.length() == 0) {
+                    if (value == null || value.length() == 0) {//通过get方法获取设置的属性值
                         Method getter;
                         try {
                             getter = config.getClass().getMethod("get" + name.substring(3), new Class<?>[0]);
@@ -174,9 +174,9 @@ public abstract class AbstractConfig implements Serializable {
                             }
                         }
                         if (getter != null) {
-                            if (getter.invoke(config, new Object[0]) == null) {
+                            if (getter.invoke(config, new Object[0]) == null) {//说明get方法返回值是null,因此要继续寻找该值的属性,继续赋值
                                 if (config.getId() != null && config.getId().length() > 0) {
-                                    value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);
+                                    value = ConfigUtils.getProperty(prefix + config.getId() + "." + property);//从dubbo.properties中读取配置的内容
                                 }
                                 if (value == null || value.length() == 0) {
                                     value = ConfigUtils.getProperty(prefix + property);
@@ -191,7 +191,7 @@ public abstract class AbstractConfig implements Serializable {
                             }
                         }
                     }
-                    if (value != null && value.length() > 0) {
+                    if (value != null && value.length() > 0) {//为该对象赋值
                         method.invoke(config, new Object[] {convertPrimitive(method.getParameterTypes()[0], value)});
                     }
                 }
@@ -217,9 +217,9 @@ public abstract class AbstractConfig implements Serializable {
         appendParameters(parameters, config, null);
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")//对config对象中所有的get方法的属性值追加到parameters中
     protected static void appendParameters(Map<String, String> parameters, Object config, String prefix) {
-        if (config == null) {
+        if (config == null) {//比如config为<dubbo:application owner="programmer" name="demo-provider" organization="dubbox" id="demo-provider" />
             return;
         }
         Method[] methods = config.getClass().getMethods();
@@ -230,33 +230,33 @@ public abstract class AbstractConfig implements Serializable {
                         && ! "getClass".equals(name)
                         && Modifier.isPublic(method.getModifiers()) 
                         && method.getParameterTypes().length == 0
-                        && isPrimitive(method.getReturnType())) {
+                        && isPrimitive(method.getReturnType())) {//获取所有的get方法,可以获取属性值
                     Parameter parameter = method.getAnnotation(Parameter.class);
                     if (method.getReturnType() == Object.class || parameter != null && parameter.excluded()) {
                         continue;
                     }
-                    int i = name.startsWith("get") ? 3 : 2;
-                    String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");
+                    int i = name.startsWith("get") ? 3 : 2;//是否是get还是is开头
+                    String prop = StringUtils.camelToSplitName(name.substring(i, i + 1).toLowerCase() + name.substring(i + 1), ".");//get方法对应的属性name
                     String key;
-                    if (parameter != null && parameter.key() != null && parameter.key().length() > 0) {
+                    if (parameter != null && parameter.key() != null && parameter.key().length() > 0) {//有Parameter,并且有key存在
                         key = parameter.key();
                     } else {
                         key = prop;
                     }
-                    Object value = method.invoke(config, new Object[0]);
+                    Object value = method.invoke(config, new Object[0]);//获取返回值
                     String str = String.valueOf(value).trim();
                     if (value != null && str.length() > 0) {
-                        if (parameter != null && parameter.escaped()) {
+                        if (parameter != null && parameter.escaped()) {//true表示要对该key对应的属性值进行转码处理,即URL.encode(value);
                             str = URL.encode(str);
                         }
                         if (parameter != null && parameter.append()) {
-                            String pre = (String)parameters.get(Constants.DEFAULT_KEY + "." + key);
+                            String pre = (String)parameters.get(Constants.DEFAULT_KEY + "." + key);//获取该key的默认值,进行追加
                             if (pre != null && pre.length() > 0) {
                                 str = pre + "," + str;
                             }
                             pre = (String)parameters.get(key);
-                            if (pre != null && pre.length() > 0) {
-                                str = pre + "," + str;
+                            if (pre != null && pre.length() > 0) {//表示该key已经赋值了
+                                str = pre + "," + str;//追加该key对应的值
                             }
                         }
                         if (prefix != null && prefix.length() > 0) {

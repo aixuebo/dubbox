@@ -71,7 +71,8 @@ public class NetUtils {
             }
         }
     }
-    
+
+    //产生一个有效的端口
     public static int getAvailablePort(int port) {
     	if (port <= 0) {
     		return getAvailablePort();

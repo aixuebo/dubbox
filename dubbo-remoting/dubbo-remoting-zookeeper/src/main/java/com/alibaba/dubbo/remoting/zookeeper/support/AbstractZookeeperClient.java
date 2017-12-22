@@ -19,6 +19,7 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
 
 	private final URL url;
 
+    //当发生zookeeper的客户端状态变化的时候,如何处理---即循环每一种实现,做每一种处理
 	private final Set<StateListener> stateListeners = new CopyOnWriteArraySet<StateListener>();
 
 	private final ConcurrentMap<String, ConcurrentMap<ChildListener, TargetChildListener>> childListeners = new ConcurrentHashMap<String, ConcurrentMap<ChildListener, TargetChildListener>>();
@@ -33,12 +34,13 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
 		return url;
 	}
 
-	public void create(String path, boolean ephemeral) {
-		int i = path.lastIndexOf('/');
+    //创建zookeeper的一个path节点
+	public void create(String path, boolean ephemeral) {//path是/dubbo/com.alibaba.dubbo.demo.user.facade.UserRestService/providers/注册的url内容
+		int i = path.lastIndexOf('/');//获取要写入到哪个节点上
 		if (i > 0) {
-			create(path.substring(0, i), false);
+			create(path.substring(0, i), false);//不断的递归写入,都是永久节点
 		}
-		if (ephemeral) {
+		if (ephemeral) {//只有第一层进来的路径才有可能写入临时节点
 			createEphemeral(path);
 		} else {
 			createPersistent(path);
@@ -81,6 +83,7 @@ public abstract class AbstractZookeeperClient<TargetChildListener> implements Zo
 		}
 	}
 
+    //当发生zookeeper的客户端状态变化的时候,如何处理
 	protected void stateChanged(int state) {
 		for (StateListener sessionListener : getSessionListeners()) {
 			sessionListener.stateChanged(state);

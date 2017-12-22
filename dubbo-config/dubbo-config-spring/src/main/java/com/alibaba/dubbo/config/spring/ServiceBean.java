@@ -157,7 +157,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         }
         if (getApplication() == null
                 && (getProvider() == null || getProvider().getApplication() == null)) {
-            //spring中配置了哪些ApplicationConfig
+            //spring中配置了哪些ApplicationConfig----map映射内容 demo-provider=<dubbo:application owner="programmer" name="demo-provider" organization="dubbox" id="demo-provider" />
             Map<String, ApplicationConfig> applicationConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, ApplicationConfig.class, false, false);
             if (applicationConfigMap != null && applicationConfigMap.size() > 0) {
                 ApplicationConfig applicationConfig = null;
@@ -195,6 +195,7 @@ public class ServiceBean<T> extends ServiceConfig<T> implements InitializingBean
         if ((getRegistries() == null || getRegistries().size() == 0)
                 && (getProvider() == null || getProvider().getRegistries() == null || getProvider().getRegistries().size() == 0)
                 && (getApplication() == null || getApplication().getRegistries() == null || getApplication().getRegistries().size() == 0)) {
+            //map映射内容 com.alibaba.dubbo.config.RegistryConfig=<dubbo:registry address="zookeeper://slavenode1:2181" id="com.alibaba.dubbo.config.RegistryConfig" />
             Map<String, RegistryConfig> registryConfigMap = applicationContext == null ? null : BeanFactoryUtils.beansOfTypeIncludingAncestors(applicationContext, RegistryConfig.class, false, false);
             if (registryConfigMap != null && registryConfigMap.size() > 0) {
                 List<RegistryConfig> registryConfigs = new ArrayList<RegistryConfig>();

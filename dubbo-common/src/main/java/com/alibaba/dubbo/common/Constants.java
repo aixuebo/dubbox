@@ -57,7 +57,7 @@ public class Constants {
 
     public static final String  CACHE_KEY                          = "cache";
 
-    public static final String  DYNAMIC_KEY                        = "dynamic";
+    public static final String  DYNAMIC_KEY                        = "dynamic";//true表示zookeeper的临时节点
 
     public static final String  DUBBO_PROPERTIES_KEY               = "dubbo.properties.file";
 
@@ -67,7 +67,7 @@ public class Constants {
 
     public static final boolean DEFAULT_SENT                       = false;
 
-    public static final String  REGISTRY_PROTOCOL                  = "registry";
+    public static final String  REGISTRY_PROTOCOL                  = "";
 
     public static final String  $INVOKE                            = "$invoke";//参数的顺序是  方法名、参数类型、参数值
 
@@ -162,7 +162,7 @@ public class Constants {
 
     public static final String  CLUSTER_KEY                        = "cluster";
 
-    public static final String  REGISTRY_KEY                       = "registry";
+    public static final String  REGISTRY_KEY                       = "registry";//表示注册时候原始协议是什么,比如zookeeper
 
     public static final String  MONITOR_KEY                        = "monitor";
 

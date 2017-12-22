@@ -41,7 +41,7 @@ public class ProviderConfig extends AbstractServiceConfig {
     // ======== 协议缺省值，当协议属性未设置时使用该缺省值替代  ========
 
     // 服务IP地址(多网卡时使用)
-    private String              host;
+    private String              host;//发布服务的节点在哪个host上可以被访问
 
     // 服务端口
     private Integer             port;

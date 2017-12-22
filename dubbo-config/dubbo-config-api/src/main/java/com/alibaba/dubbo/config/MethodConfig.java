@@ -22,7 +22,10 @@ import com.alibaba.dubbo.config.support.Parameter;
 
 /**
  * MethodConfig
- * 
+ <dubbo:service id="registryServiceConfig" interface="com.alibaba.dubbo.registry.RegistryService" ref="registryService" registry="N/A" ondisconnect="disconnect" callbacks="1000">
+     <dubbo:method name="subscribe"><dubbo:argument index="1" callback="true" /></dubbo:method>
+     <dubbo:method name="unsubscribe"><dubbo:argument index="1" callback="false" /></dubbo:method>
+ </dubbo:service>
  * @author william.liangf
  * @export
  */

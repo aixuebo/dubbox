@@ -23,7 +23,10 @@ import java.lang.annotation.Target;
 
 /**
  * Parameter
- * 
+ * 参数对象
+ * 用于在属性的get方法上面,可以对get的name进行修改,修改成key,作为参数进行接下来的传递
+ *
+ * 比如getName上有这个Parameter,key为xxx,因此参数传递的就不是name了,而是xxx
  * @author william.liangf
  */
 @Documented
@@ -33,14 +36,14 @@ public @interface Parameter {
 
     String key() default "";
     
-    boolean required() default false;
+    boolean required() default false;//必须存在
     
     boolean excluded() default false;
 
-    boolean escaped() default false;
-    
+    boolean escaped() default false;//true表示要对该key对应的属性值进行转码处理,即URL.encode(value);
+
     boolean attribute() default false;
 
-    boolean append() default false;
+    boolean append() default false;//true表示如果key对应多次值,则要进行追加填写,所有的值分割使用逗号
     
 }

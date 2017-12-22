@@ -26,6 +26,7 @@ import com.alibaba.dubbo.common.URL;
 
 public class UrlUtils {
 
+    //解析一个url
     public static URL parseURL(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
@@ -123,11 +124,12 @@ public class UrlUtils {
         return u;
     }
 
+    //地址使用;可以拆分,因此变成解析多个url
     public static List<URL> parseURLs(String address, Map<String, String> defaults) {
         if (address == null || address.length() == 0) {
             return null;
         }
-        String[] addresses = Constants.REGISTRY_SPLIT_PATTERN.split(address);
+        String[] addresses = Constants.REGISTRY_SPLIT_PATTERN.split(address);//地址使用;拆分
         if (addresses == null || addresses.length == 0) {
             return null; //here won't be empty
         }

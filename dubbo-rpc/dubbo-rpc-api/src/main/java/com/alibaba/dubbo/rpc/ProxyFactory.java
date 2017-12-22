@@ -41,10 +41,11 @@ public interface ProxyFactory {
      * create invoker.
      * 
      * @param <T>
-     * @param proxy
-     * @param type
-     * @param url
+     * @param proxy 具体的接口实现类
+     * @param type 代理的接口
+     * @param url 操作的url
      * @return invoker
+     * ref是com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl@69a0a8ec,interfaceClass是接口对象,url是追加export=url的内容
      */
     @Adaptive({Constants.PROXY_KEY})
     <T> Invoker<T> getInvoker(T proxy, Class<T> type, URL url) throws RpcException;

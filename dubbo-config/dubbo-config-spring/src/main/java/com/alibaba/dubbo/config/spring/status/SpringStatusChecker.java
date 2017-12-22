@@ -29,7 +29,7 @@ import com.alibaba.dubbo.config.spring.ServiceBean;
 
 /**
  * SpringStatusChecker
- * 
+ * 查看spring是否运行起来了
  * @author william.liangf
  */
 @Activate

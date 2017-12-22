@@ -33,7 +33,7 @@ import com.alibaba.dubbo.config.spring.ServiceBean;
 
 /**
  * DataSourceStatusChecker
- * 
+ * 查看连接数据库信息是否通
  * @author william.liangf
  */
 @Activate
@@ -47,7 +47,7 @@ public class DataSourceStatusChecker implements StatusChecker {
         if (context == null) {
             return new Status(Status.Level.UNKNOWN);
         }
-        Map<String, DataSource> dataSources = context.getBeansOfType(DataSource.class, false, false);
+        Map<String, DataSource> dataSources = context.getBeansOfType(DataSource.class, false, false);//获取数据库信息
         if (dataSources == null || dataSources.size() == 0) {
             return new Status(Status.Level.UNKNOWN);
         }

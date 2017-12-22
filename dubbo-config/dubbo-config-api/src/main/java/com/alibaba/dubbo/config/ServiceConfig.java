@@ -63,18 +63,19 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     
     private static final ProxyFactory proxyFactory = ExtensionLoader.getExtensionLoader(ProxyFactory.class).getAdaptiveExtension();
 
+    //每一个协议对应的随机产生的端口
     private static final Map<String, Integer> RANDOM_PORT_MAP = new HashMap<String, Integer>();
 
     // 接口类型
-    private String              interfaceName;
+    private String              interfaceName;//接口全路径
 
-    private Class<?>            interfaceClass;
+    private Class<?>            interfaceClass;//接口对应的class对象
 
     // 接口实现类引用
     private T                   ref;
 
     // 服务名称
-    private String              path;
+    private String              path;//默认是interfaceName相同
 
     // 方法配置
     private List<MethodConfig>  methods;
@@ -85,7 +86,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     
     private final List<Exporter<?>> exporters = new ArrayList<Exporter<?>>();
 
-    private transient volatile boolean exported;
+    private transient volatile boolean exported;//true表示已经曝光完成
 
 	private transient volatile boolean unexported;
     
@@ -128,7 +129,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (export != null && ! export.booleanValue()) {
             return;
         }
-        if (delay != null && delay > 0) {
+        if (delay != null && delay > 0) {//延迟暴露
             Thread thread = new Thread(new Runnable() {
                 public void run() {
                     try {
@@ -141,7 +142,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             thread.setDaemon(true);
             thread.setName("DelayExportServiceThread");
             thread.start();
-        } else {
+        } else {//立即暴露
             doExport();
         }
     }
@@ -191,7 +192,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 monitor = application.getMonitor();
             }
         }
-        if (ref instanceof GenericService) {
+        if (ref instanceof GenericService) {//ref是com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl@69a0a8ec  里面有userService = com.alibaba.dubbo.demo.user.UserServiceImpl@1740f67a
             interfaceClass = GenericService.class;
             if (StringUtils.isEmpty(generic)) {
                 generic = Boolean.TRUE.toString();
@@ -199,7 +200,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         } else {
             try {
                 interfaceClass = Class.forName(interfaceName, true, Thread.currentThread()
-                        .getContextClassLoader());
+                        .getContextClassLoader());//对接口String转换成class
             } catch (ClassNotFoundException e) {
                 throw new IllegalStateException(e.getMessage(), e);
             }
@@ -235,7 +236,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 throw new IllegalStateException("The stub implemention class " + stubClass.getName() + " not implement interface " + interfaceName);
             }
         }
-        checkApplication();
+        checkApplication();//添加属性的默认值,在java系统环境或者dubbo的配置文件dubbo.properties中添加
         checkRegistry();
         checkProtocol();
         appendProperties(this);
@@ -251,7 +252,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (ref == null) {
             throw new IllegalStateException("ref not allow null!");
         }
-        if (! interfaceClass.isInstance(ref)) {
+        if (! interfaceClass.isInstance(ref)) {//ref一定是interfaceClass的实现类
             throw new IllegalStateException("The class "
                     + ref.getClass().getName() + " unimplemented interface "
                     + interfaceClass + "!");
@@ -280,33 +281,33 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void doExportUrls() {
-        List<URL> registryURLs = loadRegistries(true);
+        List<URL> registryURLs = loadRegistries(true);//获取注册中心地址
         for (ProtocolConfig protocolConfig : protocols) {
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
 
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
-        String name = protocolConfig.getName();
+        String name = protocolConfig.getName();//比如dubbo和rest协议
         if (name == null || name.length() == 0) {
             name = "dubbo";
         }
 
-        String host = protocolConfig.getHost();
+        String host = protocolConfig.getHost();//发布服务的节点在哪个host上可以被访问
         if (provider != null && (host == null || host.length() == 0)) {
             host = provider.getHost();
         }
         boolean anyhost = false;
-        if (NetUtils.isInvalidLocalHost(host)) {
+        if (NetUtils.isInvalidLocalHost(host)) {//说明是有效的本地ip,或者本地没有配置发布的host,因此获取本地的host即可
             anyhost = true;
             try {
-                host = InetAddress.getLocalHost().getHostAddress();
+                host = InetAddress.getLocalHost().getHostAddress();//获取本地的ip地址
             } catch (UnknownHostException e) {
                 logger.warn(e.getMessage(), e);
             }
-            if (NetUtils.isInvalidLocalHost(host)) {
+            if (NetUtils.isInvalidLocalHost(host)) {//说明此时依然没办法获取本地的ip
                 if (registryURLs != null && registryURLs.size() > 0) {
-                    for (URL registryURL : registryURLs) {
+                    for (URL registryURL : registryURLs) {//则采用与注册中心建立连接,通过建立连接后的socket就可以获取本地的ip地址了
                         try {
                             Socket socket = new Socket();
                             try {
@@ -324,23 +325,23 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         }
                     }
                 }
-                if (NetUtils.isInvalidLocalHost(host)) {
+                if (NetUtils.isInvalidLocalHost(host)) {//基本不会走到这里来,因为肯定可以获取到本地的ip了
                     host = NetUtils.getLocalHost();
                 }
             }
         }
 
-        Integer port = protocolConfig.getPort();
+        Integer port = protocolConfig.getPort();//获取发布服务的端口
         if (provider != null && (port == null || port == 0)) {
             port = provider.getPort();
         }
-        final int defaultPort = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name).getDefaultPort();
+        final int defaultPort = ExtensionLoader.getExtensionLoader(Protocol.class).getExtension(name).getDefaultPort();//获取name=rest的扩展端口
         if (port == null || port == 0) {
             port = defaultPort;
         }
         if (port == null || port <= 0) {
-            port = getRandomPort(name);
-            if (port == null || port < 0) {
+            port = getRandomPort(name);//获取随机产生的端口
+            if (port == null || port < 0) {//说明没有产生过该协议的端口
                 port = NetUtils.getAvailablePort(defaultPort);
                 putRandomPort(name, port);
             }
@@ -351,8 +352,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (anyhost) {
             map.put(Constants.ANYHOST_KEY, "true");
         }
-        map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);
-        map.put(Constants.DUBBO_VERSION_KEY, Version.getVersion());
+        map.put(Constants.SIDE_KEY, Constants.PROVIDER_SIDE);//sid=provider
+        map.put(Constants.DUBBO_VERSION_KEY, Version.getVersion());//dubbo=版本号
         map.put(Constants.TIMESTAMP_KEY, String.valueOf(System.currentTimeMillis()));
         if (ConfigUtils.getPid() > 0) {
             map.put(Constants.PID_KEY, String.valueOf(ConfigUtils.getPid()));
@@ -433,11 +434,11 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                 map.put("methods", Constants.ANY_VALUE);
             }
             else {
-                map.put("methods", StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));
+                map.put("methods", StringUtils.join(new HashSet<String>(Arrays.asList(methods)), ","));//添加可以发布的方法集合
             }
         }
         if (! ConfigUtils.isEmpty(token)) {
-            if (ConfigUtils.isDefault(token)) {
+            if (ConfigUtils.isDefault(token)) {//发布token
                 map.put("token", UUID.randomUUID().toString());
             } else {
                 map.put("token", token);
@@ -448,7 +449,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             map.put("notify", "false");
         }
         // 导出服务
-        String contextPath = protocolConfig.getContextpath();
+        String contextPath = protocolConfig.getContextpath();//请求host+端口下哪个路径,才能请求到服务,即url的path
         if ((contextPath == null || contextPath.length() == 0) && provider != null) {
             contextPath = provider.getContextpath();
         }
@@ -460,7 +461,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     .getExtension(url.getProtocol()).getConfigurator(url).configure(url);
         }
 
-        String scope = url.getParameter(Constants.SCOPE_KEY);
+        String scope = url.getParameter(Constants.SCOPE_KEY);//可能值是null
         //配置为none不暴露
         if (! Constants.SCOPE_NONE.toString().equalsIgnoreCase(scope)) {
 
@@ -484,9 +485,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         if (logger.isInfoEnabled()) {
                             logger.info("Register dubbo service " + interfaceClass.getName() + " url " + url + " to registry " + registryURL);
                         }
+                        //ref是com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl@69a0a8ec,interfaceClass是接口对象,url是追加export=url的内容
                         Invoker<?> invoker = proxyFactory.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(Constants.EXPORT_KEY, url.toFullString()));
 
-                        Exporter<?> exporter = protocol.export(invoker);
+                        Exporter<?> exporter = protocol.export(invoker);//发布一个消息
                         exporters.add(exporter);
                     }
                 } else {
@@ -503,10 +505,10 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
     private void exportLocal(URL url) {
-        if (!Constants.LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {
+        if (!Constants.LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {//injvm
             URL local = URL.valueOf(url.toFullString())
-                    .setProtocol(Constants.LOCAL_PROTOCOL)
-                    .setHost(NetUtils.LOCALHOST)
+                    .setProtocol(Constants.LOCAL_PROTOCOL)//设置协议为injvm
+                    .setHost(NetUtils.LOCALHOST)//设置host为127.0.0.1
                     .setPort(0);
 
             // modified by lishen

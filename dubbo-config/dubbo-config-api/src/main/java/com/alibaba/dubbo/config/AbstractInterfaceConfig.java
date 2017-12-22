@@ -160,7 +160,7 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
         List<URL> registryList = new ArrayList<URL>();
         if (registries != null && registries.size() > 0) {//加载zookeeper
             for (RegistryConfig config : registries) {
-                String address = config.getAddress();
+                String address = config.getAddress();//比如zookeeper://slavenode1:2181
                 if (address == null || address.length() == 0) {
                 	address = Constants.ANYHOST_VALUE;
                 }
@@ -169,9 +169,9 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                     address = sysaddress;
                 }
                 if (address != null && address.length() > 0 
-                        && ! RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {
+                        && ! RegistryConfig.NO_AVAILABLE.equalsIgnoreCase(address)) {//说明设置的地址是正确的地址
                     Map<String, String> map = new HashMap<String, String>();
-                    appendParameters(map, application);
+                    appendParameters(map, application);//对config对象中所有的get方法的属性值追加到parameters中
                     appendParameters(map, config);
                     map.put("path", RegistryService.class.getName());
                     map.put("dubbo", Version.getVersion());
@@ -186,11 +186,11 @@ public abstract class AbstractInterfaceConfig extends AbstractMethodConfig {
                             map.put("protocol", "dubbo");
                         }
                     }
-                    List<URL> urls = UrlUtils.parseURLs(address, map);//zookeeper://slavenode1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.0&organization=dubbox&owner=programmer&pid=13248&timestamp=1513683113665
+                    List<URL> urls = UrlUtils.parseURLs(address, map);//让url与参数进行merge,组成整体的url,比如zookeeper://slavenode1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.0&organization=dubbox&owner=programmer&pid=13248&timestamp=1513683113665
                     for (URL url : urls) {
-                        url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());
-                        url = url.setProtocol(Constants.REGISTRY_PROTOCOL);
-                        if ((provider && url.getParameter(Constants.REGISTER_KEY, true))
+                        url = url.addParameter(Constants.REGISTRY_KEY, url.getProtocol());//记录注册时候原始协议是什么,比如zookeeper
+                        url = url.setProtocol(Constants.REGISTRY_PROTOCOL);//将协议改成registry
+                        if ((provider && url.getParameter(Constants.REGISTER_KEY, true)) //register
                                 || (! provider && url.getParameter(Constants.SUBSCRIBE_KEY, true))) {
                             registryList.add(url);
                         }

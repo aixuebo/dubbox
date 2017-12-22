@@ -66,7 +66,8 @@ public final class Version {
             return false;
         }
     }
-    
+
+    //获取class的版本号,class一般是一个接口
     public static String getVersion(Class<?> cls, String defaultVersion) {
         try {
             // 首先查找MANIFEST.MF规范中的版本号

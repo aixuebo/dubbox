@@ -65,7 +65,7 @@ public abstract class AbstractRegistry implements Registry {
     // URL地址分隔正则表达式，用于解析文件缓存中服务提供者URL列表
     private static final String URL_SPLIT = "\\s+";
 
-    private URL registryUrl;
+    private URL registryUrl;//此时的url是注册中心的url,即如何连接注册中心
 
     // 本地磁盘缓存文件
     private File file;
@@ -87,6 +87,7 @@ public abstract class AbstractRegistry implements Registry {
 
     private final ConcurrentMap<URL, Map<String, List<URL>>> notified = new ConcurrentHashMap<URL, Map<String, List<URL>>>();
 
+    //参数的url是注册中心的url,即如何连接注册中心
     public AbstractRegistry(URL url) {
         setUrl(url);
         // 启动文件保存定时器
