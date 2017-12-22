@@ -89,7 +89,7 @@ public class ExtensionLoader<T> {
     //name作为key,value作为该name对应的class
     private final Holder<Map<String, Class<?>>> cachedClasses = new Holder<Map<String,Class<?>>>();
 
-    //代理的信息
+    //激活扩展点
     private final Map<String, Activate> cachedActivates = new ConcurrentHashMap<String, Activate>();
 
     //一个代理对象
@@ -137,7 +137,8 @@ public class ExtensionLoader<T> {
         this.type = type;
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
     }
-    
+
+    //获取一个扩展实现类对应的name
     public String getExtensionName(T extensionInstance) {
         return getExtensionName(extensionInstance.getClass());
     }
@@ -200,15 +201,15 @@ public class ExtensionLoader<T> {
      * @return extension list which are activated
      */
     public List<T> getActivateExtension(URL url, String[] values, String group) {
-        List<T> exts = new ArrayList<T>();
+        List<T> exts = new ArrayList<T>();//name对应的实现类集合
         List<String> names = values == null ? new ArrayList<String>(0) : Arrays.asList(values);
         if (! names.contains(Constants.REMOVE_VALUE_PREFIX + Constants.DEFAULT_KEY)) {//-.default
             getExtensionClasses();
-            for (Map.Entry<String, Activate> entry : cachedActivates.entrySet()) {
+            for (Map.Entry<String, Activate> entry : cachedActivates.entrySet()) {//循环所有的激活扩展点
                 String name = entry.getKey();
                 Activate activate = entry.getValue();
                 if (isMatchGroup(group, activate.group())) {
-                    T ext = getExtension(name);
+                    T ext = getExtension(name);//获取name对应的实现类实例
                     if (! names.contains(name)
                             && ! names.contains(Constants.REMOVE_VALUE_PREFIX + name) 
                             && isActive(activate, url)) {
@@ -899,11 +900,11 @@ public class ExtensionLoader<T> {
                         else {
                             if(!"protocol".equals(value[i]))
                                 if (hasInvocation) 
-                                    getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);
+                                    getNameCode = String.format("url.getMethodParameter(methodName, \"%s\", \"%s\")", value[i], defaultExtName);//从url中获取方法对应的参数值
                                 else
                                     getNameCode = String.format("url.getParameter(\"%s\")", value[i]);
                             else
-                                getNameCode = "url.getProtocol()";
+                                getNameCode = "url.getProtocol()";//从url中获取协议
                         }
                     }
                     else {
