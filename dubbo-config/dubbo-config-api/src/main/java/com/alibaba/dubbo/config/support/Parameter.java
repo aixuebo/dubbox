@@ -35,15 +35,18 @@ import java.lang.annotation.Target;
 public @interface Parameter {
 
     String key() default "";
-    
-    boolean required() default false;//必须存在
+
+    //必须存在
+    boolean required() default false;
     
     boolean excluded() default false;
 
-    boolean escaped() default false;//true表示要对该key对应的属性值进行转码处理,即URL.encode(value);
+    //true表示要对该key对应的属性值进行转码处理,即URL.encode(value);
+    boolean escaped() default false;
 
     boolean attribute() default false;
 
-    boolean append() default false;//true表示如果key对应多次值,则要进行追加填写,所有的值分割使用逗号
+    //true表示如果key对应多次值,则要进行追加填写,所有的值分割使用逗号
+    boolean append() default false;
     
 }

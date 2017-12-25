@@ -67,7 +67,7 @@ public class Constants {
 
     public static final boolean DEFAULT_SENT                       = false;
 
-    public static final String  REGISTRY_PROTOCOL                  = "";
+    public static final String  REGISTRY_PROTOCOL                  = "registry";
 
     public static final String  $INVOKE                            = "$invoke";//参数的顺序是  方法名、参数类型、参数值
 

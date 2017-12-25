@@ -40,7 +40,7 @@ import com.alibaba.dubbo.common.utils.ReflectUtils;
 
 public abstract class Proxy
 {
-	private static final AtomicLong PROXY_CLASS_COUNTER = new AtomicLong(0);
+	private static final AtomicLong PROXY_CLASS_COUNTER = new AtomicLong(0);//代理类计数器---即有多少个代理类
 
 	private static final String PACKAGE_NAME = Proxy.class.getPackage().getName();
 
@@ -51,14 +51,14 @@ public abstract class Proxy
 	public static final InvocationHandler THROW_UNSUPPORTED_INVOKER = new InvocationHandler(){
 		public Object invoke(Object proxy, Method method, Object[] args){ throw new UnsupportedOperationException("Method [" + ReflectUtils.getName(method) + "] unimplemented."); }
 	};
-
+    //每一个classLoad一个缓存空间,value的key是接口集合,用分号拆分,value是可以代表该接口的代理对象WeakReference<Proxy>(proxy),而且被WeakReference弱引用了一下
 	private static final Map<ClassLoader, Map<String, Object>> ProxyCacheMap = new WeakHashMap<ClassLoader, Map<String, Object>>();
 
 	private static final Object PendingGenerationMarker = new Object();
 
 	/**
 	 * Get proxy.
-	 * 
+	 * 创建一个代理类
 	 * @param ics interface class array.
 	 * @return Proxy instance.
 	 */
@@ -78,7 +78,7 @@ public abstract class Proxy
 	{
 		if( ics.length > 65535 )
 			throw new IllegalArgumentException("interface limit exceeded");
-		
+		//多个接口用分号拆分,比如com.alibaba.dubbo.demo.user.facade.UserRestService;com.alibaba.dubbo.rpc.service.EchoService;
 		StringBuilder sb = new StringBuilder();
 		for(int i=0;i<ics.length;i++)
 		{
@@ -93,7 +93,7 @@ public abstract class Proxy
 			}
 			catch(ClassNotFoundException e)
 			{}
-
+            //目的就是证明是否是在同一个classLoader下能否加载成功
 			if( tmp != ics[i] )
 				throw new IllegalArgumentException(ics[i] + " is not visible from class loader");
 
@@ -104,7 +104,7 @@ public abstract class Proxy
 		String key = sb.toString();
 
 		// get cache by class loader.
-		Map<String, Object> cache;
+		Map<String, Object> cache;//每一个classLoad一个缓存空间
 		synchronized( ProxyCacheMap )
 		{
 			cache = ProxyCacheMap.get(cl);
@@ -141,20 +141,20 @@ public abstract class Proxy
 			while( true );
 		}
 
-		long id = PROXY_CLASS_COUNTER.getAndIncrement();
+		long id = PROXY_CLASS_COUNTER.getAndIncrement();//为代理类匹配一个自增长的ID
 		String pkg = null;
 		ClassGenerator ccp = null, ccm = null;
 		try
 		{
 			ccp = ClassGenerator.newInstance(cl);
 
-			Set<String> worked = new HashSet<String>();
-			List<Method> methods = new ArrayList<Method>();
+			Set<String> worked = new HashSet<String>();//方法和参数还有返回值表示一个元素
+			List<Method> methods = new ArrayList<Method>();//追加的方法
 
 			for(int i=0;i<ics.length;i++)
 			{
 				if( !Modifier.isPublic(ics[i].getModifiers()) )
-				{
+				{//不是public的应该也不是很经常存在,因此忽略该情况
 					String npkg = ics[i].getPackage().getName();
 					if( pkg == null )
 					{
@@ -166,11 +166,11 @@ public abstract class Proxy
 							throw new IllegalArgumentException("non-public interfaces from different packages");
 					}
 				}
-				ccp.addInterface(ics[i]);
+				ccp.addInterface(ics[i]);//添加一个接口
 
 				for( Method method : ics[i].getMethods() )
 				{
-					String desc = ReflectUtils.getDesc(method);
+					String desc = ReflectUtils.getDesc(method);//registerUser(Lcom/alibaba/dubbo/demo/user/User;)Lcom/alibaba/dubbo/demo/user/facade/RegistrationResult;描述方法以及参数和返回值
 					if( worked.contains(desc) )
 						continue;
 					worked.add(desc);
@@ -178,7 +178,7 @@ public abstract class Proxy
 					int ix = methods.size();
 					Class<?> rt = method.getReturnType();
 					Class<?>[] pts = method.getParameterTypes();
-
+                    //生成的代码:Object[] args = new Object[1]; args[0] = ($w)$1; Object ret = handler.invoke(this, methods[0], args); return (com.alibaba.dubbo.demo.user.facade.RegistrationResult)ret;
 					StringBuilder code = new StringBuilder("Object[] args = new Object[").append(pts.length).append("];");
 					for(int j=0;j<pts.length;j++)
 						code.append(" args[").append(j).append("] = ($w)$").append(j+1).append(";");
@@ -186,8 +186,8 @@ public abstract class Proxy
 					if( !Void.TYPE.equals(rt) )
 						code.append(" return ").append(asArgument(rt, "ret")).append(";");
 
-					methods.add(method);
-					ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, method.getExceptionTypes(), code.toString());
+					methods.add(method);//添加一个方法
+					ccp.addMethod(method.getName(), method.getModifiers(), rt, pts, method.getExceptionTypes(), code.toString());//向方法中添加代码的实现
 				}
 			}
 
@@ -195,18 +195,18 @@ public abstract class Proxy
 				pkg = PACKAGE_NAME;
 
 			// create ProxyInstance class.
-			String pcn = pkg + ".proxy" + id;
+			String pcn = pkg + ".proxy" + id;//com.alibaba.dubbo.common.bytecode.proxy0
 			ccp.setClassName(pcn);
-			ccp.addField("public static java.lang.reflect.Method[] methods;");
-			ccp.addField("private " + InvocationHandler.class.getName() + " handler;");
-			ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{ InvocationHandler.class }, new Class<?>[0], "handler=$1;");
+			ccp.addField("public static java.lang.reflect.Method[] methods;");//定义该代理包含的所有方法集合
+			ccp.addField("private " + InvocationHandler.class.getName() + " handler;");//定义一个handler
+			ccp.addConstructor(Modifier.PUBLIC, new Class<?>[]{ InvocationHandler.class }, new Class<?>[0], "handler=$1;");//定义构造函数
             ccp.addDefaultConstructor();
 			Class<?> clazz = ccp.toClass();
-			clazz.getField("methods").set(null, methods.toArray(new Method[0]));
+			clazz.getField("methods").set(null, methods.toArray(new Method[0]));//为class设置属性
 
 			// create Proxy class.
-			String fcn = Proxy.class.getName() + id;
-			ccm = ClassGenerator.newInstance(cl);
+			String fcn = Proxy.class.getName() + id;//com.alibaba.dubbo.common.bytecode.Proxy0
+			ccm = ClassGenerator.newInstance(cl);//创建一个实例对象
 			ccm.setClassName(fcn);
 			ccm.addDefaultConstructor();
 			ccm.setSuperClass(Proxy.class);

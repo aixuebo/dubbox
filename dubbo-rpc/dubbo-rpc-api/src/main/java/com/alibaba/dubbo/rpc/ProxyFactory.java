@@ -30,7 +30,7 @@ public interface ProxyFactory {
 
     /**
      * create proxy.
-     * 
+     * 为这个Invoker创建一个代理类实例对象
      * @param invoker
      * @return proxy
      */

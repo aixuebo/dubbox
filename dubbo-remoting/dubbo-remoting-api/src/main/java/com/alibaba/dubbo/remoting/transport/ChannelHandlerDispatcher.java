@@ -26,18 +26,18 @@ import com.alibaba.dubbo.remoting.ChannelHandler;
 
 /**
  * ChannelListenerDispatcher
- * 
+ * 让一个事件被多个handler处理
  * @author william.liangf
  */
 public class ChannelHandlerDispatcher implements ChannelHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ChannelHandlerDispatcher.class);
 
-    private final Collection<ChannelHandler> channelHandlers = new CopyOnWriteArraySet<ChannelHandler>();
+    private final Collection<ChannelHandler> channelHandlers = new CopyOnWriteArraySet<ChannelHandler>();//持有一组handler,每一次都触发一组handler去一起处理
     
     public ChannelHandlerDispatcher() {
     }
-    
+
     public ChannelHandlerDispatcher(ChannelHandler... handlers) {
         this(handlers == null ? null : Arrays.asList(handlers));
     }

@@ -43,9 +43,9 @@ public class StubProxyFactoryWrapper implements ProxyFactory {
     
     private static final Logger LOGGER = LoggerFactory.getLogger(StubProxyFactoryWrapper.class);
     
-    private final ProxyFactory proxyFactory;
+    private final ProxyFactory proxyFactory;//com.alibaba.dubbo.rpc.proxy.javassist.JavassistProxyFactory@65a70774
     
-    private Protocol protocol;
+    private Protocol protocol;//com.alibaba.dubbo.rpc.Protocol$Adpative@45264fd
     
     public StubProxyFactoryWrapper(ProxyFactory proxyFactory) {
         this.proxyFactory = proxyFactory;

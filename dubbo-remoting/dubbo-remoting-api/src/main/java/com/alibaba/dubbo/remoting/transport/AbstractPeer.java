@@ -30,7 +30,7 @@ import com.alibaba.dubbo.remoting.RemotingException;
  */
 public abstract class AbstractPeer implements Endpoint, ChannelHandler {
 
-    private final ChannelHandler handler;
+    private final ChannelHandler handler;//真正的代理
 
     private volatile URL         url;
 

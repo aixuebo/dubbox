@@ -47,7 +47,7 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
 
     private InetSocketAddress              bindAddress;
 
-    private int                            accepts;
+    private int                            accepts;//最大连接的客户数
 
     private int                            idleTimeout = 600; //600 seconds
     
@@ -183,12 +183,12 @@ public abstract class AbstractServer extends AbstractEndpoint implements Server 
     @Override
     public void connected(Channel ch) throws RemotingException {
         Collection<Channel> channels = getChannels();
-        if (accepts > 0 && channels.size() > accepts) {
+        if (accepts > 0 && channels.size() > accepts) {//说明连接的用户数量已经超过阀值
             logger.error("Close channel " + ch + ", cause: The server " + ch.getLocalAddress() + " connections greater than max config " + accepts);
             ch.close();
             return;
         }
-        super.connected(ch);
+        super.connected(ch);//去连接一个客户端
     }
     
     @Override

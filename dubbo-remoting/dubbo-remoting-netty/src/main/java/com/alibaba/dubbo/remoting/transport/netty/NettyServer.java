@@ -53,11 +53,11 @@ public class NettyServer extends AbstractServer implements Server {
     
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
-    private Map<String, Channel>  channels; // <ip:port, channel>
+    private Map<String, Channel>  channels; // <ip:port, channel> //表示与服务端对象连接映射关系
 
     private ServerBootstrap                 bootstrap;
 
-    private org.jboss.netty.channel.Channel channel;
+    private org.jboss.netty.channel.Channel channel;//服务server对象
 
     public NettyServer(URL url, ChannelHandler handler) throws RemotingException{
         super(url, ChannelHandlers.wrap(handler, ExecutorUtil.setThreadName(url, SERVER_THREAD_POOL_NAME)));
@@ -147,6 +147,7 @@ public class NettyServer extends AbstractServer implements Server {
         return chs;
     }
 
+    //返回与该客户端通信的服务对象
     public Channel getChannel(InetSocketAddress remoteAddress) {
         return channels.get(NetUtils.toAddressString(remoteAddress));
     }

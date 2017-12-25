@@ -31,21 +31,21 @@ public interface ChannelHandler {
 
     /**
      * on channel connected.
-     * 
+     * 建立一个通道
      * @param channel channel.
      */
     void connected(Channel channel) throws RemotingException;
 
     /**
      * on channel disconnected.
-     * 
+     * 关闭一个通道
      * @param channel channel.
      */
     void disconnected(Channel channel) throws RemotingException;
 
     /**
      * on message sent.
-     * 
+     * 向某一个通道发送信息
      * @param channel channel.
      * @param message message.
      */
@@ -53,7 +53,7 @@ public interface ChannelHandler {
 
     /**
      * on message received.
-     * 
+     * 从某个通道收到信息
      * @param channel channel.
      * @param message message.
      */
@@ -61,7 +61,7 @@ public interface ChannelHandler {
 
     /**
      * on exception caught.
-     * 
+     * 某个通道产生异常
      * @param channel channel.
      * @param exception exception.
      */

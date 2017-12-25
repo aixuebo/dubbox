@@ -128,7 +128,7 @@ public final class ClassGenerator
 		mInterfaces.add(cn);
 		return this;
 	}
-
+    //添加一个接口
 	public ClassGenerator addInterface(Class<?> cl)
 	{
 		return addInterface(cl.getName());
@@ -172,7 +172,7 @@ public final class ClassGenerator
 		sb.append(';');
 		return addField(sb.toString());
 	}
-
+    //添加一个方法的全部代码--包括方法的定义声明
 	public ClassGenerator addMethod(String code)
 	{
 		if( mMethods == null )
@@ -185,7 +185,7 @@ public final class ClassGenerator
 	{
 		return addMethod(name, mod, rt, pts, null, body);
 	}
-
+    //追加一个方法,方法名字、方法的修饰符、方法的返回值、方法的参数类型、方法抛出的异常类型、方法的代码实现体
 	public ClassGenerator addMethod(String name, int mod, Class<?> rt, Class<?>[] pts, Class<?>[] ets, String body)
 	{
 		StringBuilder sb = new StringBuilder();
@@ -210,7 +210,7 @@ public final class ClassGenerator
 			}
 		}
 		sb.append('{').append(body).append('}');
-		return addMethod(sb.toString());
+		return addMethod(sb.toString());//debug的结果:public com.alibaba.dubbo.demo.user.facade.RegistrationResult registerUser(com.alibaba.dubbo.demo.user.User arg0){Object[] args = new Object[1]; args[0] = ($w)$1; Object ret = handler.invoke(this, methods[0], args); return (com.alibaba.dubbo.demo.user.facade.RegistrationResult)ret;}
 	}
 
 	public ClassGenerator addMethod(Method m)

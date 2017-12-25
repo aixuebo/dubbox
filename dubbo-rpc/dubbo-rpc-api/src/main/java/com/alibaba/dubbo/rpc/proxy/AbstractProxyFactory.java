@@ -31,9 +31,9 @@ public abstract class AbstractProxyFactory implements ProxyFactory {
 
     public <T> T getProxy(Invoker<T> invoker) throws RpcException {
         Class<?>[] interfaces = null;
-        String config = invoker.getUrl().getParameter("interfaces");
+        String config = invoker.getUrl().getParameter("interfaces");//找到接口class
         if (config != null && config.length() > 0) {
-            String[] types = Constants.COMMA_SPLIT_PATTERN.split(config);
+            String[] types = Constants.COMMA_SPLIT_PATTERN.split(config);//逗号拆分,说明实现多接口
             if (types != null && types.length > 0) {
                 interfaces = new Class<?>[types.length + 2];
                 interfaces[0] = invoker.getInterface();
