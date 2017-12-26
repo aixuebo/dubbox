@@ -33,7 +33,9 @@ import com.alibaba.dubbo.common.utils.ReflectUtils;
 
 /**
  * Wrapper.
- * 
+ * 对一个对象生成一个包装类,所以后该对象的属性值以及对应的方法都可以在包装类中被调用,而且是在invoker方法中被调用
+ *
+ * 该类的目的:就是无论该实例对象proxy有哪些方法,都会被转移到invoke方法的形式去调用
  * @author qian.lei
  */
 
@@ -41,6 +43,7 @@ public abstract class Wrapper
 {
 	private static AtomicLong WRAPPER_CLASS_COUNTER = new AtomicLong(0);
 
+    //缓存每一个class对应初始化好的包装类
 	private static final Map<Class<?>, Wrapper> WRAPPER_MAP = new ConcurrentHashMap<Class<?>, Wrapper>(); //class wrapper map
 
 	private static final String[] EMPTY_STRING_ARRAY = new String[0];
@@ -74,10 +77,11 @@ public abstract class Wrapper
 	 * 
 	 * @param c Class instance.
 	 * @return Wrapper instance(not null).
+     * 比如返回值debug com.alibaba.dubbo.common.bytecode.Wrapper1@3b59640d
 	 */
 	public static Wrapper getWrapper(Class<?> c)
     {
-        while( ClassGenerator.isDynamicClass(c) ) // can not wrapper on dynamic class.
+        while( ClassGenerator.isDynamicClass(c) ) // can not wrapper on dynamic class. 一直找到不是动态接口的class
             c = c.getSuperclass();
 
         if( c == Object.class )
@@ -192,17 +196,18 @@ public abstract class Wrapper
 
 	/**
 	 * invoke method.
-	 * 
-	 * @param instance instance.
-	 * @param mn method name.
-	 * @param types 
-	 * @param args argument array.
-	 * @return return value.
+	 *
+     * @param instance //debug  com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl@48931b44
+     * @param mn 要调用的接口的某个方法
+     * @param types 方法参数类型
+     * @param args 方法的参数值
 	 */
 	abstract public Object invokeMethod(Object instance, String mn, Class<?>[] types, Object[] args) throws NoSuchMethodException, InvocationTargetException;
 
+    //真正为一个class创建一个Wrapper包装类
 	private static Wrapper makeWrapper(Class<?> c)
 	{
+        //不对原生类型进行包装
 		if( c.isPrimitive() )
 			throw new IllegalArgumentException("Can not create wrapper for primitive type: " + c);
 
@@ -217,15 +222,15 @@ public abstract class Wrapper
 		c2.append(name).append(" w; try{ w = ((").append(name).append(")$1); }catch(Throwable e){ throw new IllegalArgumentException(e); }");
 		c3.append(name).append(" w; try{ w = ((").append(name).append(")$1); }catch(Throwable e){ throw new IllegalArgumentException(e); }");
 
-		Map<String, Class<?>> pts = new HashMap<String, Class<?>>(); // <property name, property types>
-		Map<String, Method> ms = new LinkedHashMap<String, Method>(); // <method desc, Method instance>
-		List<String> mns = new ArrayList<String>(); // method names.
-		List<String> dmns = new ArrayList<String>(); // declaring method names.
+		Map<String, Class<?>> pts = new HashMap<String, Class<?>>(); // <property name, property types> 映射public的属性name和属性类型,比如name=class java.lang.String  包含set/get的映射属性
+		Map<String, Method> ms = new LinkedHashMap<String, Method>(); // <method desc, Method instance> 比如key为registerUser(Lcom/alibaba/dubbo/demo/user/User;)Lcom/alibaba/dubbo/demo/user/facade/RegistrationResult; value为public com.alibaba.dubbo.demo.user.facade.RegistrationResult com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl.registerUser(com.alibaba.dubbo.demo.user.User)
+		List<String> mns = new ArrayList<String>(); // method names.添加方法的名字.比如registerUser
+		List<String> dmns = new ArrayList<String>(); // declaring method names. 比如registerUser
 		
-		// get all public field.
+		// get all public field.获取所有的public的属性集合
 		for( Field f : c.getFields() )
 		{
-			String fn = f.getName();
+			String fn = f.getName();//属性名字,比如name
 			Class<?> ft = f.getType();
 			if( Modifier.isStatic(f.getModifiers()) || Modifier.isTransient(f.getModifiers()) )
 				continue;
@@ -243,17 +248,17 @@ public abstract class Wrapper
 		}
 		for( Method m : methods )
 		{
-			if( m.getDeclaringClass() == Object.class ) //ignore Object's method.
+			if( m.getDeclaringClass() == Object.class ) //ignore Object's method.忽略Object对象的方法
 				continue;
 
-			String mn = m.getName();
+			String mn = m.getName();//返回方法的名字,比如registerUser
 			c3.append(" if( \"").append(mn).append("\".equals( $2 ) ");
             int len = m.getParameterTypes().length;
             c3.append(" && ").append(" $3.length == ").append(len);
 			
 			boolean override = false;
 			for( Method m2 : methods ) {
-				if (m != m2 && m.getName().equals(m2.getName())) {
+				if (m != m2 && m.getName().equals(m2.getName())) {//说明有重名的方法,即覆盖
 					override = true;
 					break;
 				}
@@ -291,23 +296,23 @@ public abstract class Wrapper
 		
 		// deal with get/set method.
 		Matcher matcher;
-		for( Map.Entry<String,Method> entry : ms.entrySet() )
+		for( Map.Entry<String,Method> entry : ms.entrySet() )//处理set/get添加的方法
 		{
-			String md = entry.getKey();
-			Method method = (Method)entry.getValue();
-			if( ( matcher = ReflectUtils.GETTER_METHOD_DESC_PATTERN.matcher(md) ).matches() )
+			String md = entry.getKey();//比如 registerUser(Lcom/alibaba/dubbo/demo/user/User;)Lcom/alibaba/dubbo/demo/user/facade/RegistrationResult;
+			Method method = (Method)entry.getValue();//比如public com.alibaba.dubbo.demo.user.facade.RegistrationResult com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl.registerUser(com.alibaba.dubbo.demo.user.User)
+			if( ( matcher = ReflectUtils.GETTER_METHOD_DESC_PATTERN.matcher(md) ).matches() ) //说明是get方法
 			{
 				String pn = propertyName(matcher.group(1));
 				c2.append(" if( $2.equals(\"").append(pn).append("\") ){ return ($w)w.").append(method.getName()).append("(); }");
 				pts.put(pn, method.getReturnType());
 			}
-			else if( ( matcher = ReflectUtils.IS_HAS_CAN_METHOD_DESC_PATTERN.matcher(md) ).matches() )
+			else if( ( matcher = ReflectUtils.IS_HAS_CAN_METHOD_DESC_PATTERN.matcher(md) ).matches() )//匹配is|has|can开头的方法
 			{
 				String pn = propertyName(matcher.group(1));
 				c2.append(" if( $2.equals(\"").append(pn).append("\") ){ return ($w)w.").append(method.getName()).append("(); }");
 				pts.put(pn, method.getReturnType());
 			}
-			else if( ( matcher = ReflectUtils.SETTER_METHOD_DESC_PATTERN.matcher(md) ).matches() )
+			else if( ( matcher = ReflectUtils.SETTER_METHOD_DESC_PATTERN.matcher(md) ).matches() ) //匹配set开头的方法
 			{
 				Class<?> pt = method.getParameterTypes()[0];
 				String pn = propertyName(matcher.group(1));
@@ -321,7 +326,7 @@ public abstract class Wrapper
 		// make class
 		long id = WRAPPER_CLASS_COUNTER.getAndIncrement();
 		ClassGenerator cc = ClassGenerator.newInstance(cl);
-		cc.setClassName( ( Modifier.isPublic(c.getModifiers()) ? Wrapper.class.getName() : c.getName() + "$sw" ) + id );
+		cc.setClassName( ( Modifier.isPublic(c.getModifiers()) ? Wrapper.class.getName() : c.getName() + "$sw" ) + id );//debug com.alibaba.dubbo.common.bytecode.Wrapper1
 		cc.setSuperClass(Wrapper.class);
 
 		cc.addDefaultConstructor();
@@ -420,7 +425,7 @@ public abstract class Wrapper
 	        return false;
 	    }
 	    for(Method m : methods){
-	        if(m.getDeclaringClass() != Object.class){
+	        if(m.getDeclaringClass() != Object.class){//忽略Object对象的方法
 	            return true;
 	        }
 	    }

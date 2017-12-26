@@ -22,7 +22,7 @@ import com.alibaba.dubbo.common.extension.SPI;
  * 
  * @author william.liangf
  */
-@SPI("spring")
+@SPI("spring")//默认使用spring容器
 public interface Container {
     
     /**

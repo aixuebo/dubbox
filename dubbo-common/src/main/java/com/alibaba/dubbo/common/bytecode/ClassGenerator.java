@@ -49,7 +49,7 @@ import com.alibaba.dubbo.common.utils.ReflectUtils;
 
 public final class ClassGenerator
 {
-	public static interface DC{} // dynamic class tag interface.
+	public static interface DC{} // dynamic class tag interface.表示该对象是动态的class接口
 
 	private static final AtomicLong CLASS_NAME_COUNTER = new AtomicLong(0);
 
@@ -69,7 +69,7 @@ public final class ClassGenerator
 
 	public static boolean isDynamicClass(Class<?> cl)
 	{
-		return ClassGenerator.DC.class.isAssignableFrom(cl);
+		return ClassGenerator.DC.class.isAssignableFrom(cl);//true表示cl实现了DC接口,即cl实现了动态接口
 	}
 
 	public static ClassPool getClassPool(ClassLoader loader)

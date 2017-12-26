@@ -110,7 +110,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
             throw new RpcException("Failed to unregister " + url + " to zookeeper " + getUrl() + ", cause: " + e.getMessage(), e);
         }
     }
-
+    //url debug:provider://10.107.22.89:8888/services/com.alibaba.dubbo.demo.user.facade.UserRestService?accepts=500&anyhost=true&application=demo-provider&category=configurators&check=false&dubbo=2.0.0&extension=com.alibaba.dubbo.demo.extension.TraceInterceptor,                     com.alibaba.dubbo.demo.extension.TraceFilter,                     com.alibaba.dubbo.demo.extension.ClientTraceFilter,                     com.alibaba.dubbo.demo.extension.DynamicTraceBinding,                     com.alibaba.dubbo.demo.extension.CustomExceptionMapper,                     com.alibaba.dubbo.rpc.protocol.rest.support.LoggingFilter&generic=false&group=annotationConfig&interface=com.alibaba.dubbo.demo.user.facade.UserRestService&methods=getUser,registerUser&organization=dubbox&owner=programmer&pid=8208&server=tomcat&side=provider&threads=500&timestamp=1514277419853&validation=true-----lister的debug:com.alibaba.dubbo.registry.integration.RegistryProtocol$OverrideListener@647ede5f
     protected void doSubscribe(final URL url, final NotifyListener listener) {
         try {
             if (Constants.ANY_VALUE.equals(url.getServiceInterface())) {
@@ -148,7 +148,7 @@ public class ZookeeperRegistry extends FailbackRegistry {
                 }
             } else {
                 List<URL> urls = new ArrayList<URL>();
-                for (String path : toCategoriesPath(url)) {
+                for (String path : toCategoriesPath(url)) {//比如debug path为/dubbo/com.alibaba.dubbo.demo.user.facade.UserRestService/configurators
                     ConcurrentMap<NotifyListener, ChildListener> listeners = zkListeners.get(url);
                     if (listeners == null) {
                         zkListeners.putIfAbsent(url, new ConcurrentHashMap<NotifyListener, ChildListener>());

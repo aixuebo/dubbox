@@ -28,18 +28,19 @@ import com.alibaba.dubbo.rpc.RpcInvocation;
  */
 public class InvokerInvocationHandler implements InvocationHandler {
 
-    private final Invoker<?> invoker;
+    private final Invoker<?> invoker;//debug com.alibaba.dubbo.registry.integration.RegistryProtocol$InvokerDelegete@1b7ea9e6
     
     public InvokerInvocationHandler(Invoker<?> handler){
         this.invoker = handler;
     }
-
+    //此时是当consumer消费者访问server的时候才触发的函数
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         String methodName = method.getName();
         Class<?>[] parameterTypes = method.getParameterTypes();
-        if (method.getDeclaringClass() == Object.class) {
+        if (method.getDeclaringClass() == Object.class) {//说明该方法是object对象的方法
             return method.invoke(invoker, args);
         }
+        //以下三个方法不需要进行远程调用
         if ("toString".equals(methodName) && parameterTypes.length == 0) {
             return invoker.toString();
         }
@@ -49,6 +50,7 @@ public class InvokerInvocationHandler implements InvocationHandler {
         if ("equals".equals(methodName) && parameterTypes.length == 1) {
             return invoker.equals(args[0]);
         }
+        //需要远程调用
         return invoker.invoke(new RpcInvocation(method, args)).recreate();
     }
 

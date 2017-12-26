@@ -233,17 +233,17 @@ public class RegistryProtocol implements Protocol {
         String key = providerUrl.removeParameters("dynamic", "enabled").toFullString();
         return key;
     }
-    
+    //参数url是registry://slavenode1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-consumer&dubbo=2.0.0&organization=dubbox&owner=programmer&pid=7024&refer=application%3Ddemo-consumer%26dubbo%3D2.0.0%26interface%3Dcom.alibaba.dubbo.demo.bid.BidService%26methods%3DthrowNPE%2Cbid%26organization%3Ddubbox%26owner%3Dprogrammer%26pid%3D7024%26side%3Dconsumer%26timestamp%3D1514280479732&registry=zookeeper&timestamp=1514280479793
     @SuppressWarnings("unchecked")
 	public <T> Invoker<T> refer(Class<T> type, URL url) throws RpcException {
-        url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);
+        url = url.setProtocol(url.getParameter(Constants.REGISTRY_KEY, Constants.DEFAULT_REGISTRY)).removeParameter(Constants.REGISTRY_KEY);//切换protocal,即zookeeper://slavenode1:2181/com.alibaba.dubbo.registry.RegistryService?application=demo-consumer&dubbo=2.0.0&organization=dubbox&owner=programmer&pid=7024&refer=application%3Ddemo-consumer%26dubbo%3D2.0.0%26interface%3Dcom.alibaba.dubbo.demo.bid.BidService%26methods%3DthrowNPE%2Cbid%26organization%3Ddubbox%26owner%3Dprogrammer%26pid%3D7024%26side%3Dconsumer%26timestamp%3D1514280479732&timestamp=1514280479793
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
         	return proxyFactory.getInvoker((T) registry, type, url);
         }
 
         // group="a,b" or group="*"
-        Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(Constants.REFER_KEY));
+        Map<String, String> qs = StringUtils.parseQueryString(url.getParameterAndDecoded(Constants.REFER_KEY));//解析请求信息
         String group = qs.get(Constants.GROUP_KEY);
         if (group != null && group.length() > 0 ) {
             if ( ( Constants.COMMA_SPLIT_PATTERN.split( group ) ).length > 1

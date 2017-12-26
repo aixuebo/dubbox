@@ -1,0 +1,105 @@
+假设 class com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl
+
+创建包装类源代码
+com.alibaba.dubbo.common.bytecode.Wrapper1 expends Wrapper{
+public static String[] pns;// property name array.属性name的集合
+public static Map pts; // property type map. 属性name与属性类型的映射
+public static String[] mns;// declared method name array.方法名集合
+public static String[] dmns;
+
+//以下是循环ms,即每一个method的class
+public static Class[] mts1;//表示第一个method需要的参数类型集合
+public static Class[] mts2;
+public static Class[] mts3;
+...
+public static Class[] mtsn;
+
+public String[] getPropertyNames(){
+ return pns;
+}
+public boolean hasProperty(String n){
+    return pts.containsKey($1);
+}
+public Class getPropertyType(String n){
+     return (Class)pts.get($1);
+}
+public String[] getMethodNames(){
+    return mns;
+}
+public String[] getDeclaredMethodNames(){
+     return dmns;
+}
+
+注意:下面的$1代表第一个参数值
+//参数值表示对象,属性name,属性值
+public void setPropertyValue(Object o, String n, Object v){
+    com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl w;
+    try{
+        w = ((com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl)$1);
+    }catch(Throwable e){
+        throw new IllegalArgumentException(e);
+    }
+
+    if( $2.equals("name") ){
+        w.name=(java.lang.String)$3;
+        return;
+    }
+
+    if( $2.equals("userService") ){
+        w.setUserService((com.alibaba.dubbo.demo.user.UserService)$3);
+        return;
+    }
+
+    throw new com.alibaba.dubbo.common.bytecode.NoSuchPropertyException
+    ("Not found property \""+$2+"\" filed or setter method in class com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl.");
+}
+
+public Object getPropertyValue(Object o, String n){ 、
+    com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl w;
+    try{
+        w = ((com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl)$1);
+    }catch(Throwable e){
+        throw new IllegalArgumentException(e);
+    }
+
+    if( $2.equals("name") ){
+        return ($w)w.name;
+    }
+
+   throw new com.alibaba.dubbo.common.bytecode.NoSuchPropertyException
+   ("Not found property \""+$2+"\" filed or setter method in class com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl.");
+}
+
+//参数表示对象实例,要调用的方法、要调用方法的参数类型、要调用方法的参数值
+public Object invokeMethod(Object o, String n, Class[] p, Object[] v) throws java.lang.reflect.InvocationTargetException{
+    com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl w;
+    try{
+        w = ((com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl)$1);
+    }catch(Throwable e){
+        throw new IllegalArgumentException(e);
+    }
+
+    try{
+        if( "registerUser".equals( $2 )  &&  $3.length == 1 ) {
+            return ($w)w.registerUser((com.alibaba.dubbo.demo.user.User)$4[0]);
+        }
+
+        if( "getUser".equals( $2 )  &&  $3.length == 1 ) {
+            return ($w)w.getUser((java.lang.Long)$4[0]);
+        }
+
+        if( "setUserService".equals( $2 )  &&  $3.length == 1 ) {
+            w.setUserService((com.alibaba.dubbo.demo.user.UserService)$4[0]);
+            return null;
+        }
+     } catch(Throwable e) {
+           throw new java.lang.reflect.InvocationTargetException(e);
+     }
+
+     throw new com.alibaba.dubbo.common.bytecode.NoSuchMethodException
+     ("Not found method \""+$2+"\" in class com.alibaba.dubbo.demo.user.facade.AnnotationDrivenUserRestServiceImpl.");
+ }
+
+}
+
+

@@ -62,7 +62,7 @@ public class MockClusterInvoker<T> implements Invoker<T>{
 	public Class<T> getInterface() {
 		return directory.getInterface();
 	}
-
+    //参数debug:RpcInvocation [methodName=bid, parameterTypes=[class com.alibaba.dubbo.demo.bid.BidRequest], arguments=[com.alibaba.dubbo.demo.bid.BidRequest@21f8a21c], attachments={}] 表示此时发送的是一个RPC的请求调用
 	public Result invoke(Invocation invocation) throws RpcException {
 		Result result = null;
         

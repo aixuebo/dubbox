@@ -40,6 +40,8 @@ public class AnnotationDrivenUserRestServiceImpl implements UserRestService {
 
 //    private static final Logger logger = LoggerFactory.getLogger(UserRestServiceImpl.class);
 
+    public String name;
+
     @Autowired
     private UserService userService;
 

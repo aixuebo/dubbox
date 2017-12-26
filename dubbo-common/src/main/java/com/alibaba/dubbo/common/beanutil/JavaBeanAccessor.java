@@ -27,10 +27,12 @@ public enum JavaBeanAccessor {
     /** Method prefer to field. */
     ALL;
 
+    //true表示是可以被访问的方法
     public static boolean isAccessByMethod(JavaBeanAccessor accessor) {
         return METHOD.equals(accessor) || ALL.equals(accessor);
     }
 
+    //true表示是可以被访问的属性
     public static boolean isAccessByField(JavaBeanAccessor accessor) {
         return FIELD.equals(accessor) || ALL.equals(accessor);
     }
